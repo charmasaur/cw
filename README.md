@@ -1,2 +1,2 @@
 # cw
-Crossword program
+Do paper crosswords on your computer!
