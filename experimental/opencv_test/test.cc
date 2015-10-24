@@ -12,15 +12,19 @@ int main(int argc, char **argv) {
 	}
 
 	Mat image;
-	image = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
 
 	if (!image.data) {
 		cout << "Could not open or find the image" << endl;
 		return -1;
 	}
 
-	namedWindow("Display window", WINDOW_AUTOSIZE);
-	imshow("Display window", image);
+	//namedWindow("Display window", WINDOW_AUTOSIZE);
+	//imshow("Display window", image);
+
+	cout << "Rows: " << image.rows << ", columns: " << image.cols
+		<< ", channels: " << image.channels() << ", depth: " << image.depth()
+		<< endl;
 
 	waitKey(0);
 	return 0;
