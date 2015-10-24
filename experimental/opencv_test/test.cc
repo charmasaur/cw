@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char **argv) {
 	if (argc != 2) {
-		cout << "Usage: display_image image" << endl;
+		cout << "Usage: test image" << endl;
 		return -1;
 	}
 
