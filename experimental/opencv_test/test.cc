@@ -26,6 +26,13 @@ int main(int argc, char **argv) {
 		<< ", channels: " << image.channels() << ", depth: " << image.depth()
 		<< endl;
 
+  //for (int i = 0; i < image.rows; ++i) {
+  //  for (int j = 0; j < image.cols; ++j) {
+  //    cout << image.at<double>(i,j) << " ";
+  //  }
+  //  cout << endl;
+  //}
+
 	waitKey(0);
 	return 0;
 }
