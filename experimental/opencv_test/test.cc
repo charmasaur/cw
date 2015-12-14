@@ -6,33 +6,23 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char **argv) {
-	if (argc != 2) {
-		cout << "Usage: test image" << endl;
-		return -1;
-	}
+    if (argc != 2) {
+        cout << "Usage: test image" << endl;
+        return -1;
+    }
 
-	Mat image;
-	image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+    Mat image;
+    image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
 
-	if (!image.data) {
-		cout << "Could not open or find the image" << endl;
-		return -1;
-	}
+    if (!image.data) {
+        cout << "Could not open or find the image" << endl;
+        return -1;
+    }
 
-	//namedWindow("Display window", WINDOW_AUTOSIZE);
-	//imshow("Display window", image);
+    cout << "Rows: " << image.rows << ", columns: " << image.cols
+        << ", channels: " << image.channels() << ", depth: " << image.depth()
+        << endl;
 
-	cout << "Rows: " << image.rows << ", columns: " << image.cols
-		<< ", channels: " << image.channels() << ", depth: " << image.depth()
-		<< endl;
-
-  //for (int i = 0; i < image.rows; ++i) {
-  //  for (int j = 0; j < image.cols; ++j) {
-  //    cout << image.at<double>(i,j) << " ";
-  //  }
-  //  cout << endl;
-  //}
-
-	waitKey(0);
-	return 0;
+    waitKey(0);
+    return 0;
 }
