@@ -8,8 +8,8 @@ using namespace std;
 
 void filter(Mat& input, Mat& output) {
     Mat kernel = (Mat_<double>(4,4) << 0, 0.1, 0.1, 0,
-                                     0.1, 0.1, 0.1, 0.1,
-                                     0.1, 0.1, 0.1, 0.1,
+                                     0.1, 0.05, 0.05, 0.1,
+                                     0.1, 0.05, 0.05, 0.1,
                                      0, 0.1, 0.1, 0);
 
     filter2D(input, output, input.depth(), kernel);
