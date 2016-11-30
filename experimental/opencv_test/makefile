@@ -1,5 +1,5 @@
 CC = g++ -g -Wall
-LDFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc
+LDFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
 RM = rm -f
 
 test : test.cc
