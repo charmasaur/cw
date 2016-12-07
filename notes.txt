@@ -1,0 +1,2 @@
+Use DFT + some line detection thing to figure out rotation.
+How can we get rid of the horizontal/vertical lines due to artificial things?
