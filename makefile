@@ -9,4 +9,4 @@ filter_test : filter_test.cc
 	$(CC) filter_test.cc -o filter_test $(LDFLAGS)
 
 clean :
-	$(RM) test
+	$(RM) test output_*

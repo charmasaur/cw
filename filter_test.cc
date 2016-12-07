@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <string>
 
 using namespace cv;
 using namespace std;
@@ -34,6 +35,9 @@ int main(int argc, char **argv) {
     filter(input, output);
     namedWindow("Display window", WINDOW_AUTOSIZE);
     imshow("Display window", output);
+    Mat img8bit;
+    output.convertTo(img8bit, CV_8UC3, 255.);
+    imwrite(string("output_") + string(argv[1]), img8bit);
 
     waitKey(0);
     return 0;
