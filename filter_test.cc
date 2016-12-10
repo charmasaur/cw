@@ -113,6 +113,10 @@ void rotate(Mat& input, Mat& output) {
     //filter2D(temp_output, output, temp_output.depth(), kernel);
 }
 
+void get_grid(Mat& input, Mat& output) {
+    output = input;
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         cout << "Usage: filter_test image" << endl;
@@ -132,6 +136,13 @@ int main(int argc, char **argv) {
     namedWindow("Display window", WINDOW_AUTOSIZE);
     imshow("Display window", rotated);
     imwrite(string("rotated_") + string(argv[1]), rotated);
+    waitKey(0);
+
+    Mat grid;
+    get_grid(rotated, grid);
+    namedWindow("Display window", WINDOW_AUTOSIZE);
+    imshow("Display window", grid);
+    imwrite(string("grid_") + string(argv[1]), grid);
     waitKey(0);
 
     return 0;
