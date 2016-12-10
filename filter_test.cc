@@ -8,8 +8,9 @@
 using namespace cv;
 using namespace std;
 
-void filter(Mat& input, Mat& output) {
-    Mat& padded = input;
+void rotate(Mat& input, Mat& output) {
+    // FFT
+    Mat padded = input;
     int m = getOptimalDFTSize(input.rows);
     int n = getOptimalDFTSize(input.cols);
     copyMakeBorder(input, padded, 0, m - input.rows, 0, n - input.cols, BORDER_CONSTANT, Scalar::all(0));
@@ -39,15 +40,16 @@ void filter(Mat& input, Mat& output) {
     q2.copyTo(q1);
     tmp.copyTo(q2);
 
-    Mat temp_output;
-    normalize(magI, temp_output, 0, 1, CV_MINMAX);
+    normalize(magI, magI, 0, 1, CV_MINMAX);
 
-    temp_output.convertTo(temp_output, CV_8UC1, 255.);
+    // Convert to 8-bit for remaining things
+    magI.convertTo(magI, CV_8UC1, 255.);
 
+    // Threshold
     Mat thresholded;
-    threshold(temp_output, thresholded, 128., 255., THRESH_BINARY);
+    threshold(magI, thresholded, 128., 255., THRESH_BINARY);
 
-    // Calculate rotation.
+    // Get rotation
     int midr = thresholded.rows / 2;
     int midc = thresholded.cols / 2;
     int nbuckets = 100;
@@ -83,11 +85,9 @@ void filter(Mat& input, Mat& output) {
     double rot_angle_deg = rot_angle_rad * 180. / 3.14;
     cout << "Rotation angle (degrees): " << rot_angle_deg << endl;
 
+    // Actually rotate the input
     Mat rot = getRotationMatrix2D(Point(midc, midr), rot_angle_deg, 1.f);
-    Mat rotated;
-    warpAffine(input, rotated, rot, input.size());
-
-    output = rotated;
+    warpAffine(input, output, rot, input.size());
 
     // Don't think Hough is quite right, since they're not real lines. Maybe PCA? Or we could just
     // do a histogram of all angles...
@@ -112,7 +112,6 @@ void filter(Mat& input, Mat& output) {
     //                                   0, 0.1, 0.1, 0);
     //filter2D(temp_output, output, temp_output.depth(), kernel);
 }
-  
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -128,12 +127,12 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    Mat output;
-    filter(input, output);
+    Mat rotated;
+    rotate(input, rotated);
     namedWindow("Display window", WINDOW_AUTOSIZE);
-    imshow("Display window", output);
-    imwrite(string("output_") + string(argv[1]), output);
-
+    imshow("Display window", rotated);
+    imwrite(string("rotated_") + string(argv[1]), rotated);
     waitKey(0);
+
     return 0;
 }
