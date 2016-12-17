@@ -260,6 +260,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    showit(input);
+
     Mat cw;
     namedWindow("cwfloat", WINDOW_AUTOSIZE);
     get_cw_orth_trunc(input, cw);
