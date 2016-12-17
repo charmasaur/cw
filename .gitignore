@@ -2,3 +2,7 @@ test
 filter_test
 *.jpg
 *.JPG
+*.png
+*.swp
+testing/
+data/
