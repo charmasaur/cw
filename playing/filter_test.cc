@@ -199,11 +199,11 @@ void hough_playing_for_grid_outline(Mat& input, Mat& output) {
 
 // crossword mask
 void get_cw_mask(Mat& input, Mat& outputMask) {
-    threshold(input, input, 128., 255., THRESH_BINARY);
+    Mat filled = input.clone();
+    threshold(filled, filled, 128., 255., THRESH_BINARY);
     // Fill from all corners
     int in = 1;
     Scalar col = Scalar(0,0,0);
-    Mat filled = input.clone();
     Mat mask = Mat::zeros(filled.rows + 2, filled.cols + 2, CV_8UC1);
     floodFill(filled, mask, Point(in,in), col);
     floodFill(filled, mask, Point(filled.cols - in,in), col);
@@ -218,7 +218,6 @@ void get_cw_mask(Mat& input, Mat& outputMask) {
       tc += p.x;
       tr += p.y;
     }
-    cvtColor(input, input, CV_GRAY2BGR);
     Mat oldmask = mask.clone();
     Scalar bc = Scalar(255, 255, 255);
     floodFill(filled, mask, Point(double(tc) / double(locs.size()), double(tr) / double(locs.size())), Scalar(255, 0, 0), NULL, bc, bc);
