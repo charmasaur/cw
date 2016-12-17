@@ -266,6 +266,7 @@ int main(int argc, char **argv) {
     namedWindow("cwfloat", WINDOW_AUTOSIZE);
     get_cw_orth_trunc(input, cw);
     showit(cw);
+    imwrite(string("cw_") + string(argv[1]), cw);
 
     return 0;
 }
