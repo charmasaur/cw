@@ -8,7 +8,23 @@
 using namespace cv;
 using namespace std;
 
-void rotate(Mat& input, Mat& output) {
+// helper to show a matrix
+void showit(Mat& it) {
+  imshow("cwfloat", it);
+  waitKey(0);
+}
+
+// helper to convert an angle (in radians) to [-pi, pi)
+double principal_angle(double angle) {
+  double tmp = fmod(angle, 2 * CV_PI); // (-2pi, 2pi)
+  if (tmp < 0) {
+    tmp += 2 * CV_PI;
+  } // [0, 2pi)
+  return fmod(tmp + CV_PI, 2 * CV_PI) - CV_PI; // [-pi, pi)
+}
+
+// gets the angle using FFT
+double get_angle_fft(Mat& input) {
     // FFT
     Mat padded = input;
     int m = getOptimalDFTSize(input.rows);
@@ -84,37 +100,150 @@ void rotate(Mat& input, Mat& output) {
     double rot_angle_rad = total_angle_in_buckets[best_bucket] / double(buckets[best_bucket]);
     double rot_angle_deg = rot_angle_rad * 180. / 3.14;
     cout << "Rotation angle (degrees): " << rot_angle_deg << endl;
-
-    // Actually rotate the input
-    Mat rot = getRotationMatrix2D(Point(midc, midr), rot_angle_deg, 1.f);
-    warpAffine(input, output, rot, input.size());
-
-    // Don't think Hough is quite right, since they're not real lines. Maybe PCA? Or we could just
-    // do a histogram of all angles...
-    //vector<Vec2f> lines;
-    //HoughLines(temp_output, lines, 10, CV_PI/180, 10000, 0, 0);
-    //for (size_t i = 0; i < lines.size(); ++i) {
-    //    float rho = lines[i][0];
-    //    float theta = lines[i][1];
-    //    Point pt1, pt2;
-    //    double a = cos(theta), b = sin(theta);
-    //    double x0 = a*rho, y0 = b*rho;
-    //    pt1.x = cvRound(x0 + 1000*(-b));
-    //    pt1.y = cvRound(y0 + 1000*a);
-    //    pt2.x = cvRound(x0 - 1000*(-b));
-    //    pt2.y = cvRound(y0 - 1000*a);
-    //    line(output, pt1, pt2, Scalar(0, 0, 255), 1, CV_AA);
-
-    //}
-    //Mat kernel = (Mat_<double>(4,4) << 0, 0.1, 0.1, 0,
-    //                                   0.1, 0.05, 0.05, 0.1,
-    //                                   0.1, 0.05, 0.05, 0.1,
-    //                                   0, 0.1, 0.1, 0);
-    //filter2D(temp_output, output, temp_output.depth(), kernel);
+    return rot_angle_deg;
 }
 
-void get_grid(Mat& input, Mat& output) {
-    output = input;
+// gets the rotation angle using hough transform (works best with a single big rectangle, like a mask)
+double get_angle_hough(Mat& input) {
+    Mat edge;
+    Canny(input, edge, 50, 200, 3);
+    vector<Vec2f> lines;
+    int thresh = 0;
+    do {
+      thresh += 10;
+      HoughLines(edge, lines, 5, CV_PI/180, thresh, 0, 0);
+    } while (lines.size() > 10);
+    double angles = 0.;
+    int angle_count = 0;
+    for (Vec2f line : lines) {
+        double pang = principal_angle(line[1]); // (-pi, pi)
+        if (pang < -CV_PI / 2) {
+          pang += CV_PI;
+        }
+        if (pang > CV_PI / 2) {
+          pang -= CV_PI;
+        }
+        // (-pi/2, pi/2)
+        cout << line[1] << " " << pang  << endl;
+        if (pang < CV_PI / 4 && pang > -CV_PI/4) {
+          angles += pang;
+          angle_count++;
+        }
+    }
+    double rot_angle_rad = angles / double(angle_count);
+    double rot_angle_deg = rot_angle_rad * 180. / CV_PI;
+    cout << "Rotation angle (degrees): " << rot_angle_deg << endl;
+    return rot_angle_deg;
+}
+
+// helper to rotate by an angle (in degrees)
+void rotate(Mat& input, Mat& output, double angle) {
+    int midr = input.rows / 2;
+    int midc = input.cols / 2;
+    // Actually rotate the input
+    Mat rot = getRotationMatrix2D(Point(midc, midr), angle, 1.f);
+    warpAffine(input, output, rot, input.size());
+}
+
+// various hough experiments to try to get the grid lines directly
+void hough_playing_for_grid_outline(Mat& input, Mat& output) {
+    Canny(input, input, 50, 200, 3);
+
+    int v = 0;
+    cvtColor(input, output, CV_GRAY2BGR);
+    if (v == 0) {
+      vector<Vec2f> lines;
+      int thresh = 0;
+      do {
+        thresh += 10;
+        HoughLines(input, lines, 5, CV_PI/180, thresh, 0, 0);
+      } while (lines.size() > 10);
+      for (size_t i = 0; i < lines.size(); ++i) {
+          float rho = lines[i][0];
+          float theta = lines[i][1];
+          cout << "Angle: " << theta << endl;
+          Point pt1, pt2;
+          double a = cos(theta), b = sin(theta);
+          double x0 = a*rho, y0 = b*rho;
+          pt1.x = cvRound(x0 + 1000*(-b));
+          pt1.y = cvRound(y0 + 1000*a);
+          pt2.x = cvRound(x0 - 1000*(-b));
+          pt2.y = cvRound(y0 - 1000*a);
+          line(output, pt1, pt2, Scalar(0, 0, 255), 1, CV_AA);
+      }
+    } else if (v == 1) {
+      vector<Vec4i> lines;
+      int thresh = 0;
+      do {
+        cout << thresh << endl;
+        thresh += 100;
+        HoughLinesP(input, lines, 10, CV_PI/18, thresh, 50, 0);
+      } while (lines.size() > 100);
+      for (size_t i = 0; i < lines.size(); ++i) {
+          Point pt1, pt2;
+          cout << "a line"<< endl;
+          pt1.x = lines[i][0];
+          pt1.y = lines[i][1];
+          pt2.x = lines[i][2];
+          pt2.y = lines[i][3];
+          line(output, pt1, pt2, Scalar(0, 0, 255), 1, CV_AA);
+      }
+    } else if (v == 2) {
+      vector<Point2f> corners;
+      goodFeaturesToTrack(input, corners, 4, 0.01, 100);
+      for (size_t i = 0; i < corners.size(); ++i) {
+        circle(output, corners[i], 4, Scalar(0, 0, 255));
+      }
+    }
+}
+
+// crossword mask
+void get_cw_mask(Mat& input, Mat& outputMask) {
+    threshold(input, input, 128., 255., THRESH_BINARY);
+    // Fill from all corners
+    int in = 1;
+    Scalar col = Scalar(0,0,0);
+    Mat filled = input.clone();
+    Mat mask = Mat::zeros(filled.rows + 2, filled.cols + 2, CV_8UC1);
+    floodFill(filled, mask, Point(in,in), col);
+    floodFill(filled, mask, Point(filled.cols - in,in), col);
+    floodFill(filled, mask, Point(filled.cols - in,filled.rows - in), col);
+    floodFill(filled, mask, Point(in,filled.rows - in), col);
+    // Find average white pixel
+    long tr = 0;
+    long tc = 0;
+    vector<Point> locs;
+    findNonZero(filled, locs);
+    for (Point p : locs) { // C++11, nice!
+      tc += p.x;
+      tr += p.y;
+    }
+    cvtColor(input, input, CV_GRAY2BGR);
+    Mat oldmask = mask.clone();
+    Scalar bc = Scalar(255, 255, 255);
+    floodFill(filled, mask, Point(double(tc) / double(locs.size()), double(tr) / double(locs.size())), Scalar(255, 0, 0), NULL, bc, bc);
+    mask -= oldmask;
+    outputMask = mask(Rect(1, 1, input.cols, input.rows));
+    //floodFill(input, mask, Point(in, in), Scalar(0, 0, 255), NULL, bc, bc);
+    ////circle(input, Point(double(tc) / double(locs.size()), double(tr) / double(locs.size())), 4, Scalar(0, 0, 255));
+
+    outputMask.convertTo(outputMask, CV_8UC1, 255.);
+    //output = input;
+}
+
+// orthogonal truncated crossword
+void get_cw_orth_trunc(Mat& input, Mat& output) {
+    Mat mask;
+    get_cw_mask(input, mask);
+    showit(mask);
+
+    double angle = get_angle_hough(mask);
+    rotate(mask, mask, angle);
+    rotate(input, input, angle);
+    showit(mask);
+    vector<Point> whites;
+    findNonZero(mask, whites);
+    output = input(boundingRect(whites));
 }
 
 int main(int argc, char **argv) {
@@ -131,19 +260,10 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    Mat rotated;
-    rotate(input, rotated);
-    namedWindow("Display window", WINDOW_AUTOSIZE);
-    imshow("Display window", rotated);
-    imwrite(string("rotated_") + string(argv[1]), rotated);
-    waitKey(0);
-
-    Mat grid;
-    get_grid(rotated, grid);
-    namedWindow("Display window", WINDOW_AUTOSIZE);
-    imshow("Display window", grid);
-    imwrite(string("grid_") + string(argv[1]), grid);
-    waitKey(0);
+    Mat cw;
+    namedWindow("cwfloat", WINDOW_AUTOSIZE);
+    get_cw_orth_trunc(input, cw);
+    showit(cw);
 
     return 0;
 }
