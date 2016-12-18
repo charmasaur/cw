@@ -8,5 +8,8 @@ test : test.cc
 filter_test : filter_test.cc
 	$(CC) filter_test.cc -o filter_test $(LDFLAGS)
 
+semantics_test : semantics_test.cc
+	$(CC) semantics_test.cc -o semantics_test
+
 clean :
 	$(RM) test output_*
