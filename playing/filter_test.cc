@@ -124,7 +124,6 @@ double get_angle_hough(Mat& input) {
           pang -= CV_PI;
         }
         // (-pi/2, pi/2)
-        cout << line[1] << " " << pang  << endl;
         if (pang < CV_PI / 4 && pang > -CV_PI/4) {
           angles += pang;
           angle_count++;
@@ -175,7 +174,6 @@ void hough_playing_for_grid_outline(Mat& input, Mat& output) {
       vector<Vec4i> lines;
       int thresh = 0;
       do {
-        cout << thresh << endl;
         thresh += 100;
         HoughLinesP(input, lines, 10, CV_PI/18, thresh, 50, 0);
       } while (lines.size() > 100);
