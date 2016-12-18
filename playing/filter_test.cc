@@ -99,7 +99,7 @@ double get_angle_fft(Mat& input) {
     // if done properly.
     double rot_angle_rad = total_angle_in_buckets[best_bucket] / double(buckets[best_bucket]);
     double rot_angle_deg = rot_angle_rad * 180. / 3.14;
-    cout << "Rotation angle (degrees): " << rot_angle_deg << endl;
+    cerr << "Rotation angle (degrees): " << rot_angle_deg << endl;
     return rot_angle_deg;
 }
 
@@ -131,7 +131,7 @@ double get_angle_hough(Mat& input) {
     }
     double rot_angle_rad = angles / double(angle_count);
     double rot_angle_deg = rot_angle_rad * 180. / CV_PI;
-    cout << "Rotation angle (degrees): " << rot_angle_deg << endl;
+    cerr << "Rotation angle (degrees): " << rot_angle_deg << endl;
     return rot_angle_deg;
 }
 
@@ -290,7 +290,7 @@ int get_grid_count(Mat& input) {
       }
       last = ti;
     }
-    cout << "Oh no didn't find a grid count";
+    cerr << "Oh no didn't find a grid count";
     return 1;
 }
 
@@ -312,7 +312,7 @@ bool is_black_square(Mat& input, int grid_count, int row, int col) {
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        cout << "Usage: filter_test image" << endl;
+        cerr << "Usage: filter_test image" << endl;
         return -1;
     }
 
@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
     input = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
 
     if (!input.data) {
-        cout << "Could not open or find the image" << endl;
+        cerr << "Could not open or find the image" << endl;
         return -1;
     }
 
@@ -352,6 +352,7 @@ int main(int argc, char **argv) {
     int wid = 30;
     Mat ne = Mat::zeros(wid * grid_count, wid * grid_count, CV_8UC1);
     bool black[grid_count][grid_count];
+    cout << grid_count << endl;
     for (int r = 0; r < grid_count; ++r) {
       for (int c = 0; c < grid_count; ++c) {
         black[r][c] = is_black_square(cw, grid_count, r, c);
