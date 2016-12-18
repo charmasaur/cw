@@ -243,6 +243,57 @@ void get_cw_orth_trunc(Mat& input, Mat& output) {
     output = input(boundingRect(whites));
 }
 
+// get grid countG(assumes square)
+int get_grid_count(Mat& input) {
+    Mat tmp;
+    Canny(input, tmp, 50, 200, 3);
+
+    // get line spacings
+    int mx = max(input.rows, input.cols);
+    vector<float> vals(mx, 0);
+
+    vector<Vec2f> lines;
+    int thresh = 0;
+    do {
+      thresh += 10;
+      HoughLines(tmp, lines, 5, CV_PI/180, thresh, 0, 0);
+    } while (lines.size() > 100);
+    for (Vec2f line : lines) {
+        int rho = abs(line[0]);
+        // only take things that are within the image and vaguely orthogonal
+        if (rho < mx && (abs(cos(line[1])) < 0.1 || abs(sin(line[1])) < 0.1)) {
+          ++vals[rho];
+        }
+    }
+
+    Mat planes[] = {Mat_<float>(vals), Mat::zeros(vals.size(), 1, CV_32F)};
+    Mat complexI;
+    merge(planes, 2, complexI);
+    dft(complexI, complexI);
+    split(complexI, planes);
+    magnitude(planes[0], planes[1], planes[0]);
+    Mat magI = planes[0];
+    // get the 90th percentile
+    vector<float> dems;
+    for (int i = 0; i < magI.rows; ++i) {
+      dems.push_back(magI.at<float>(i, 0));
+    }
+    sort(dems.begin(), dems.end());
+    float accept_thresh = dems[dems.size() * 9 / 10];
+    // take the first peak after fst that's over the 90th percentile
+    int fst = 9;
+    float last = magI.at<float>(fst, 0);
+    for (int i = fst + 1; i < magI.rows; ++i) {
+      float ti = magI.at<float>(i, 0);
+      if (ti < last && last > accept_thresh) {
+        return i - 1;
+      }
+      last = ti;
+    }
+    cout << "Oh no didn't find a grid count";
+    return 1;
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         cout << "Usage: filter_test image" << endl;
@@ -264,6 +315,23 @@ int main(int argc, char **argv) {
     get_cw_orth_trunc(input, cw);
     showit(cw);
     imwrite(string("cw_") + string(argv[1]), cw);
+
+    int grid_count = get_grid_count(cw);
+    double sp = double(cw.rows) / double(grid_count);
+    double rowy=sp/2,cowy=sp/2;
+    Mat ccw;
+    cvtColor(cw, ccw, CV_GRAY2BGR);
+    while(rowy < cw.rows) {
+      //cout << rowy << " " << cowy << endl;
+      if (cowy > cw.cols) {
+        rowy += sp;
+        cowy = sp/2;
+        continue;
+      }
+      circle(ccw, Point(cowy, rowy), 4, Scalar(0, 0, 255));
+      cowy += sp;
+    }
+    showit(ccw);
 
     return 0;
 }
