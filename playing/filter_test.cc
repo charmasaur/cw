@@ -294,6 +294,22 @@ int get_grid_count(Mat& input) {
     return 1;
 }
 
+bool is_black_square(Mat& input, int grid_count, int row, int col) {
+    double sp = double(input.rows) / double(grid_count);
+    // get actual row/col pixel
+    int r = int(double(row) * sp + sp / 2);
+    int c = int(double(col) * sp + sp / 2);
+
+    Mat tmp;
+    threshold(input, tmp, 128., 255., THRESH_BINARY);
+
+    unsigned int dim = int(sp/4);
+    Mat masked = tmp(Rect(c - dim, r - dim, 2 * dim, 2 * dim));
+    vector<Point> whites;
+    findNonZero(masked, whites);
+    return whites.size() < 4 * dim;
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         cout << "Usage: filter_test image" << endl;
@@ -332,6 +348,21 @@ int main(int argc, char **argv) {
       cowy += sp;
     }
     showit(ccw);
+
+    int wid = 30;
+    Mat ne = Mat::zeros(wid * grid_count, wid * grid_count, CV_8UC1);
+    bool black[grid_count][grid_count];
+    for (int r = 0; r < grid_count; ++r) {
+      for (int c = 0; c < grid_count; ++c) {
+        black[r][c] = is_black_square(cw, grid_count, r, c);
+        cout << (black[r][c] ? '#' : ' ');
+        if (!black[r][c]) {
+          rectangle(ne, Rect(c * wid, r * wid, wid - 1, wid - 1), Scalar(255), CV_FILLED);
+        }
+      }
+      cout << endl;
+    }
+    showit(ne);
 
     return 0;
 }
