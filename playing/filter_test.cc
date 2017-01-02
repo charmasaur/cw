@@ -306,7 +306,9 @@ bool is_black_square(Mat& input, int grid_count, int row, int col) {
     unsigned int dim = int(sp/4);
     Mat masked = tmp(Rect(c - dim, r - dim, 2 * dim, 2 * dim));
     vector<Point> whites;
-    findNonZero(masked, whites);
+    if (countNonZero(masked) > 0) {
+        findNonZero(masked, whites);
+    }
     return whites.size() < 4 * dim;
 }
 
