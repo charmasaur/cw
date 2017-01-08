@@ -14,8 +14,10 @@
     </style>
   </head>
   </head>
+  <script src="cw.js"></script>
   <body>
-    <table>
+    <div name="table"></div>
+    <!--<table>
       <tr>
         <td>a</td>
         <td style='background-color: #000'></td>
@@ -24,16 +26,19 @@
         <td>c</td>
         <td>d</td>
       </tr>
-    </table>
-    <br>
-    <form>
-      <input type="number" name="number" min="1" max="100" step="1"/>
-      <select name="direction">
-        <option name="across">Across</option>
-        <option name="across">Down</option>
-      </select>
-      <input type="text" name="text"/>
+    </table>-->
+    <div name="rest">
       <br>
-      <input type="submit" value="Submit"/>
+      <form name="new" onsubmit="return onSubmit();">
+        <input type="number" name="number" min="1" max="100" step="1"/>
+        <select name="direction">
+          <option name="across">Across</option>
+          <option name="down">Down</option>
+        </select>
+        <input type="text" name="text"/>
+        <br>
+        <input type="submit" value="Submit"/>
+      </form>
+    </div>
   </body>
 </html>
