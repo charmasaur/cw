@@ -31,10 +31,12 @@ function onSubmit() {
   entry = find_entry(num, across);
   if (entry == null) {
     alert("Entry not found");
+    return false;
   }
 
   if (text.length != entry.len) {
     alert("Wrong length");
+    return false;
   }
 
   if (across) {
@@ -46,18 +48,56 @@ function onSubmit() {
   }
 
   for (var i = 0; i < text.length; i++) {
-    // TODO: Shouldn't just append child. If there's already one there we need to reuse that.
-    cell_elements[entry.start_r + i * rdiff][entry.start_c + i * cdiff]
-      .appendChild(document.createTextNode(text[i]));
+    cell_elements[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
   }
   return false;
 }
 
+function is_rc_good(r, c) {
+  return r >= 0 && c >= 0 && r < height && c < height && !is_cell_blocked[r][c];
+}
+
+function is_entry_valid(entry) {
+  if (find_entry(entry.index, entry.is_across)) {
+    return false;
+  }
+
+  if (entry.is_across) {
+    rdiff = 0;
+    cdiff = 1;
+  } else {
+    rdiff = 1;
+    cdiff = 0;
+  }
+
+  for (var i = 0; i < entry.len; i++) {
+    if (!is_rc_good( entry.start_r + i * rdiff, entry.start_c + i * cdiff)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function maybe_add_entry(entry) {
+  if (!is_entry_valid(entry)) {
+    alert("Entry invalid: " + entry.index);
+  }
+  entries.push(entry);
+}
+
 function init_entries() {
-  entries = new Array(2);
-  entries[0] = new Entry(4, false, 0, 1, 5);
-  entries[1] = new Entry(2, true, 1, 0, 6);
-  // TODO: Verify entries
+  entries = new Array();
+  maybe_add_entry(new Entry(4, false, 0, 1, 5));
+  maybe_add_entry(new Entry(2, true, 1, 0, 6));
+
+  var div = document.getElementsByName("clues")[0];
+  for (var i = 0; i < entries.length; i++) {
+    div.appendChild(document.createTextNode(
+        entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
+        + entries[i].start_c + ") " + entries[i].len));
+    div.appendChild(document.createElement("br"));
+  }
 }
 
 function init_cell_blocks() {
@@ -88,13 +128,12 @@ function init() {
     var row = document.createElement("tr");
     cell_elements[r] = new Array(width);
     for (var c = 0; c < width; c++) {
-      cell_elements[r][c] = document.createElement("td");
-      //var text = document.createTextNode("a");
-      //cell.appendChild(text);
-      //cell.bgColor = '#000';
-      row.appendChild(cell_elements[r][c]);
+      cell = document.createElement("td");
+      cell_elements[r][c] = document.createTextNode("");
+      cell.appendChild(cell_elements[r][c]);
+      row.appendChild(cell);
       if (is_cell_blocked[r][c]) {
-        cell_elements[r][c].bgColor = '#000';
+        cell.bgColor = '#000';
       }
     }
     table.appendChild(row);
