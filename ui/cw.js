@@ -1,5 +1,7 @@
+var DEBUG = true;
 var width;
 var height;
+var cells;
 var cell_elements;
 var is_cell_blocked;
 var entries;
@@ -21,6 +23,16 @@ function find_entry(index, is_across) {
     }
   }
   return null;
+}
+
+function onFileSelected(event) {
+  var file = event.target.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    init(e.target.result);
+  };
+  reader.readAsText(file);
+  return false;
 }
 
 function onSubmit() {
@@ -86,13 +98,44 @@ function maybe_add_entry(entry) {
   entries.push(entry);
 }
 
-function init_entries() {
+function init_cell_blocks(lines) {
+  is_cell_blocked = new Array(height);
+  for (var r = 0; r < height; r++) {
+    is_cell_blocked[r] = new Array(width);
+    for (var c = 0; c < width; c++) {
+      if (lines[r][c] == ' ') {
+        is_cell_blocked[r][c] = false;
+      } else {
+        is_cell_blocked[r][c] = true;
+      }
+    }
+  }
+}
+
+function init_entries(lines) {
   entries = new Array();
-  maybe_add_entry(new Entry(4, false, 0, 1, 5));
-  maybe_add_entry(new Entry(2, true, 1, 0, 6));
+  for (var i = 0; i < lines.length; i++) {
+    var bits = lines[i].replace(/[^\w\s]/g, '').split(' ');
+    maybe_add_entry(new Entry(
+        parseInt(bits[0]),
+        bits[1] == 'across',
+        parseInt(bits[2]),
+        parseInt(bits[3]),
+        parseInt(bits[4])));
+  }
 
   var div = document.getElementsByName("clues")[0];
   for (var i = 0; i < entries.length; i++) {
+    if (cells[entries[i].start_r][entries[i].start_c].childNodes.length == 1) {
+      // TODO: Make superscripting work
+      var sm = document.createElement("small");
+      //sm.className = "supersc";
+      sm.appendChild(document.createTextNode(entries[i].index));
+      var cell = cells[entries[i].start_r][entries[i].start_c];
+      cell.insertBefore(sm, cell.firstChild);
+    }
+    // TODO: Otherwise, make sure the indices match up.
+
     div.appendChild(document.createTextNode(
         entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
         + entries[i].start_c + ") " + entries[i].len));
@@ -100,45 +143,53 @@ function init_entries() {
   }
 }
 
-function init_cell_blocks() {
-  is_cell_blocked = new Array(height);
-  for (var r = 0; r < height; r++) {
-    is_cell_blocked[r] = new Array(width);
-    for (var c = 0; c < width; c++) {
-      if (c % 2 == 0 && r % 2 == 0) {
-        is_cell_blocked[r][c] = true;
-      } else {
-        is_cell_blocked[r][c] = false;
-      }
-    }
+function init(file) {
+  if (DEBUG) {
+    width = 5;
+    height = 5;
+    init_cell_blocks(['# # #', '# # #', '     ', '     ', '     ']);
+  } else {
+    var pos = 0;
+    var lines = file.split('\n');
+    width = parseInt(lines[pos].split(' ')[0]);
+    height = parseInt(lines[pos].split(' ')[1]);
+    pos++;
+
+    init_cell_blocks(lines.slice(pos, pos + height));
+    pos += height;
+    var nclues = parseInt(lines[pos]);
+    pos++;
+    init_entries(lines.slice(pos, pos + nclues));
   }
-}
-
-
-function init() {
-  width = 15;
-  height = 15;
-  init_cell_blocks();
-  init_entries();
 
   var div = document.getElementsByName("table")[0];
   var table = document.createElement("table");
+  cells = new Array(height);
   cell_elements = new Array(height);
   for (var r = 0; r < height; r++) {
     var row = document.createElement("tr");
+    cells[r] = new Array(width);
     cell_elements[r] = new Array(width);
     for (var c = 0; c < width; c++) {
-      cell = document.createElement("td");
+      cells[r][c] = document.createElement("td");
       cell_elements[r][c] = document.createTextNode("");
-      cell.appendChild(cell_elements[r][c]);
-      row.appendChild(cell);
+      cells[r][c].appendChild(cell_elements[r][c]);
+      row.appendChild(cells[r][c]);
       if (is_cell_blocked[r][c]) {
-        cell.bgColor = '#000';
+        cells[r][c].bgColor = '#000';
       }
     }
     table.appendChild(row);
   }
   div.appendChild(table);
+
+  if (DEBUG) {
+    init_entries(['1 down: (0, 1), 4']);
+  } else {
+    init_entries(lines.slice(pos, pos + nclues));
+  }
 }
 
-window.onload = init;
+if (DEBUG) {
+  window.onload = init;
+}

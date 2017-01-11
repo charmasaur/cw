@@ -11,6 +11,13 @@
         height: 30px;
         text-align: center;
       }
+      .supersc {
+        position: absolute;
+        left: 0px;
+        right: 0px;
+        z-index: 1;
+        text-align: left;
+      }
     </style>
   </head>
   </head>
@@ -42,6 +49,12 @@
     </div>
     <div name="clues">
       <br>
+    </div>
+    <div name="input">
+      <br>
+      <form name="select" onchange="return onFileSelected(event);">
+        <input type="file" name="file"/>
+      </form>
     </div>
   </body>
 </html>
