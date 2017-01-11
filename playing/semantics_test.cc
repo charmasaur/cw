@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     return -1;
   }
   cin.ignore(1,'\n');
+  cout << wid << " " << wid << endl;
   for (int i = 0; i < wid; ++i) {
     cin.getline(grid[i], wid + 1);
     assert(grid[i][wid-1] == '#' || grid[i][wid-1] == ' ');
@@ -76,6 +77,7 @@ int main(int argc, char **argv) {
       }
     }
   }
+  cout << clues.size() << endl;
   for (auto i = clues.begin(); i != clues.end(); ++i) {
     cout << i->first.first.second << " " << (i->first.first.first ? "down" : "across") << ": (" << i->first.second.first << ", " << i->first.second.second << "), " << i->second << endl;
   }
