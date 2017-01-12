@@ -1,8 +1,8 @@
 var DEBUG = false;
 var width;
 var height;
-var cells;
-var cell_elements;
+var cell_letter;
+var cell_label;
 var is_cell_blocked;
 var entries;
 
@@ -60,7 +60,7 @@ function onSubmit() {
   }
 
   for (var i = 0; i < text.length; i++) {
-    cell_elements[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
+    cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
   }
   return false;
 }
@@ -140,14 +140,7 @@ function init_entries(lines) {
 function init_labels() {
   var div = document.getElementsByName("clues")[0];
   for (var i = 0; i < entries.length; i++) {
-    if (cells[entries[i].start_r][entries[i].start_c].childNodes.length == 1) {
-      // TODO: Make superscripting work
-      var sm = document.createElement("small");
-      //sm.className = "supersc";
-      sm.appendChild(document.createTextNode(entries[i].index));
-      var cell = cells[entries[i].start_r][entries[i].start_c];
-      cell.insertBefore(sm, cell.firstChild);
-    }
+    cell_label[entries[i].start_r][entries[i].start_c].nodeValue = entries[i].index;
 
     div.appendChild(document.createTextNode(
         entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
@@ -178,19 +171,34 @@ function init(file) {
 
   var div = document.getElementsByName("table")[0];
   var table = document.createElement("table");
-  cells = new Array(height);
-  cell_elements = new Array(height);
+  cell_letter = new Array(height);
+  cell_label = new Array(height);
   for (var r = 0; r < height; r++) {
     var row = document.createElement("tr");
-    cells[r] = new Array(width);
-    cell_elements[r] = new Array(width);
+    cell_letter[r] = new Array(width);
+    cell_label[r] = new Array(width);
     for (var c = 0; c < width; c++) {
-      cells[r][c] = document.createElement("td");
-      cell_elements[r][c] = document.createTextNode("");
-      cells[r][c].appendChild(cell_elements[r][c]);
-      row.appendChild(cells[r][c]);
+      cell = document.createElement("td");
+      cell_letter[r][c] = document.createTextNode("");
+      cell_label[r][c] = document.createTextNode("");
+
+      container = document.createElement("div");
+      container.className = "cell_container";
+      label = document.createElement("small");
+      label.className = "cell_label";
+      letter = document.createElement("div");
+      letter.className = "cell_letter";
+
+      label.appendChild(cell_label[r][c]);
+      letter.appendChild(cell_letter[r][c]);
+
+      container.appendChild(label);
+      container.appendChild(letter);
+
+      cell.appendChild(container);
+      row.appendChild(cell);
       if (is_cell_blocked[r][c]) {
-        cells[r][c].bgColor = '#000';
+        cell.bgColor = '#000';
       }
     }
     table.appendChild(row);
