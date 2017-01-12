@@ -146,7 +146,6 @@ function init_entries(lines) {
       var cell = cells[entries[i].start_r][entries[i].start_c];
       cell.insertBefore(sm, cell.firstChild);
     }
-    // TODO: Otherwise, make sure the indices match up.
 
     div.appendChild(document.createTextNode(
         entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
