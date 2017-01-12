@@ -70,10 +70,21 @@ function is_rc_good(r, c) {
 }
 
 function is_entry_valid(entry) {
+  // Have we already added it?
   if (find_entry(entry.index, entry.is_across)) {
     return false;
   }
 
+  // Does it start at the same point as another but with a different index?
+  for (var i = 0; i < entries.length; i++) {
+    if (entries[i].start_r == entry.start_r
+        && entries[i].start_c == entry.start_c
+        && entries[i].index != entry.index) {
+      return false;
+    }
+  }
+
+  // Does it fit?
   if (entry.is_across) {
     rdiff = 0;
     cdiff = 1;
@@ -94,6 +105,7 @@ function is_entry_valid(entry) {
 function maybe_add_entry(entry) {
   if (!is_entry_valid(entry)) {
     alert("Entry invalid: " + entry.index);
+    return;
   }
   entries.push(entry);
 }
