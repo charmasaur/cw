@@ -38,7 +38,7 @@ function onFileSelected(event) {
 function onSubmit() {
   var num = document.forms["new"]["number"].value;
   var across = document.forms["new"]["direction"].value == 'Across';
-  var text = document.forms["new"]["text"].value;
+  var text = document.forms["new"]["text"].value.toUpperCase();
 
   entry = find_entry(num, across);
   if (entry == null) {
