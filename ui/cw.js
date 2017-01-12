@@ -135,7 +135,9 @@ function init_entries(lines) {
         parseInt(bits[3]),
         parseInt(bits[4])));
   }
+}
 
+function init_labels() {
   var div = document.getElementsByName("clues")[0];
   for (var i = 0; i < entries.length; i++) {
     if (cells[entries[i].start_r][entries[i].start_c].childNodes.length == 1) {
@@ -159,6 +161,7 @@ function init(file) {
     width = 5;
     height = 5;
     init_cell_blocks(['# # #', '# # #', '     ', '     ', '     ']);
+    init_entries(['1 down: (0, 1), 4']);
   } else {
     var pos = 0;
     var lines = file.split('\n');
@@ -194,11 +197,7 @@ function init(file) {
   }
   div.appendChild(table);
 
-  if (DEBUG) {
-    init_entries(['1 down: (0, 1), 4']);
-  } else {
-    init_entries(lines.slice(pos, pos + nclues));
-  }
+  init_labels();
 }
 
 if (DEBUG) {
