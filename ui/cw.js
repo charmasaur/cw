@@ -35,6 +35,16 @@ function onFileSelected(event) {
   return false;
 }
 
+function onImageFileSelected(event) {
+  var file = event.target.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    init_image(e.target.result);
+  };
+  reader.readAsDataURL(file);
+  return false;
+}
+
 function onSubmit() {
   var num = document.forms["new"]["number"].value;
   var across = document.forms["new"]["direction"].value == 'Across';
@@ -147,6 +157,11 @@ function init_labels() {
         + entries[i].start_c + ") " + entries[i].len));
     div.appendChild(document.createElement("br"));
   }
+}
+
+function init_image(url) {
+    var img = document.getElementsByName("image_image")[0];
+    img.src = url;
 }
 
 function init(file) {

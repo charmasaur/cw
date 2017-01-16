@@ -48,13 +48,24 @@
         <input type="submit" value="Submit"/>
       </form>
     </div>
+    <div name="image">
+      <img name="image_image"/>
+    </div>
+    <!--
     <div name="clues">
       <br>
     </div>
+    -->
     <div name="input">
       <br>
       <form name="select" onchange="return onFileSelected(event);">
         <input type="file" name="file"/>
+      </form>
+    </div>
+    <div name="image_input">
+      <br>
+      <form name="select" onchange="return onImageFileSelected(event);">
+        <input type="file" name="image_file"/>
       </form>
     </div>
   </body>
