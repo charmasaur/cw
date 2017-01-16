@@ -149,17 +149,24 @@ function init_entries(lines) {
 }
 
 function onCellClicked(r, c) {
+  var num = document.getElementsByName("number")[0];
+  var old_index = num.value;
   var index = cell_label[r][c].nodeValue;
-  document.getElementsByName("number")[0].value = index;
+
+  num.value = index;
+
   var set_across;
+
   if (find_entry(index, true) == null) {
     set_across = false;
   } else if (find_entry(index, false) == null) {
     set_across = true;
     document.getElementsByName("direction")[0].value = "Across";
   } else {
-    set_across = document.getElementsByName("direction")[0].value != "Across";
+    // Default to across if the index has changed or if across was selected last time.
+    set_across = old_index != index || document.getElementsByName("direction")[0].value != "Across";
   }
+
   if (set_across) {
     document.getElementsByName("direction")[0].value = "Across";
   } else {
