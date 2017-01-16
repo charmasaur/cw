@@ -1,6 +1,7 @@
 var DEBUG = false;
 var width;
 var height;
+var cell;
 var cell_letter;
 var cell_label;
 var is_cell_blocked;
@@ -147,15 +148,42 @@ function init_entries(lines) {
   }
 }
 
+function onCellClicked(r, c) {
+  var index = cell_label[r][c].nodeValue;
+  document.getElementsByName("number")[0].value = index;
+  var set_across;
+  if (find_entry(index, true) == null) {
+    set_across = false;
+  } else if (find_entry(index, false) == null) {
+    set_across = true;
+    document.getElementsByName("direction")[0].value = "Across";
+  } else {
+    set_across = document.getElementsByName("direction")[0].value != "Across";
+  }
+  if (set_across) {
+    document.getElementsByName("direction")[0].value = "Across";
+  } else {
+    document.getElementsByName("direction")[0].value = "Down";
+  }
+
+  var txt = document.getElementsByName("text")[0];
+  txt.value = "";
+  txt.focus();
+}
+
 function init_labels() {
   var div = document.getElementsByName("clues")[0];
   for (var i = 0; i < entries.length; i++) {
-    cell_label[entries[i].start_r][entries[i].start_c].nodeValue = entries[i].index;
+    var r = entries[i].start_r;
+    var c = entries[i].start_c;
+    cell_label[r][c].nodeValue = entries[i].index;
+    cell[r][c].onclick = onCellClicked.bind(null, r, c);
+    //cell[r][c].addEventListener("click", onCellClicked.bind(null, r, c));
 
-    div.appendChild(document.createTextNode(
-        entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
-        + entries[i].start_c + ") " + entries[i].len));
-    div.appendChild(document.createElement("br"));
+    //div.appendChild(document.createTextNode(
+    //    entries[i].index + ": " + entries[i].is_across + " (" + entries[i].start_r + ","
+    //    + entries[i].start_c + ") " + entries[i].len));
+    //div.appendChild(document.createElement("br"));
   }
 }
 
@@ -186,14 +214,16 @@ function init(file) {
 
   var div = document.getElementsByName("table")[0];
   var table = document.createElement("table");
+  cell = new Array(height);
   cell_letter = new Array(height);
   cell_label = new Array(height);
   for (var r = 0; r < height; r++) {
     var row = document.createElement("tr");
+    cell[r] = new Array(width);
     cell_letter[r] = new Array(width);
     cell_label[r] = new Array(width);
     for (var c = 0; c < width; c++) {
-      cell = document.createElement("td");
+      cell[r][c] = document.createElement("td");
       cell_letter[r][c] = document.createTextNode("");
       cell_label[r][c] = document.createTextNode("");
 
@@ -210,10 +240,10 @@ function init(file) {
       container.appendChild(label);
       container.appendChild(letter);
 
-      cell.appendChild(container);
-      row.appendChild(cell);
+      cell[r][c].appendChild(container);
+      row.appendChild(cell[r][c]);
       if (is_cell_blocked[r][c]) {
-        cell.bgColor = '#000';
+        cell[r][c].bgColor = '#000';
       }
     }
     table.appendChild(row);
