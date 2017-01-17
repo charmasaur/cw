@@ -1,6 +1,7 @@
 test
 filter_test
 semantics_test
+*.o
 *.jpg
 *.JPG
 *.png
