@@ -17,15 +17,17 @@ def go():
 
     # TODO: Talk to the actual server
     data = urlfetch.fetch(
+            #url="http://cw-mungo.appspot.com/tmpdata",
             url="http://localhost:8080/tmpdata",
             payload="hello there!",
             method=urlfetch.POST,
             headers={'Content-Type': 'text/html'}).content
 
-    # TODO: Render the actual UI
-    return '<html><body>' + data + '<br><img src="data:image/' + ext + ';base64,' + base64.b64encode(file.read()) + '"/></body></html>'
-#http://flask.pocoo.org/docs/0.12/patterns/fileuploads/
+    return render_template(
+            "cw.html",
+            image_data='data:image/' + ext + ';base64,' + base64.b64encode(file.read()),
+            cw_data=data)
 
 @app.route('/tmpdata', methods=['POST'])
 def tmp_data():
-    return "You sent: " + request.get_data()
+    return render_template("data.txt")
