@@ -304,12 +304,17 @@ bool is_black_square(Mat& input, int grid_count, int row, int col) {
     threshold(input, tmp, 128., 255., THRESH_BINARY);
 
     unsigned int dim = int(sp/4);
-    Mat masked = tmp(Rect(c - dim, r - dim, 2 * dim, 2 * dim));
+    int DIM = int(dim);
+    int left = max(0, c - DIM);
+    int top = max(0, r - DIM);
+    int width = min(tmp.cols - left, 2 * DIM);
+    int height = min(tmp.rows - top, 2 * DIM);
+    Mat masked = tmp(Rect(left, top, width, height));
     vector<Point> whites;
     if (countNonZero(masked) > 0) {
         findNonZero(masked, whites);
     }
-    return whites.size() < 4 * dim;
+    return whites.size() < (unsigned int)(width * height / 2);
 }
 
 int main(int argc, char **argv) {

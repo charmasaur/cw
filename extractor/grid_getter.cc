@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <cassert>
 #include <string>
 #include <cmath>
 #include "grid_getter.h"
@@ -166,14 +167,19 @@ bool is_black_square(Mat& input, int grid_count, int row, int col) {
 
     Mat tmp;
     threshold(input, tmp, 128., 255., THRESH_BINARY);
-
-    unsigned int dim = int(sp/4);
-    Mat masked = tmp(Rect(c - dim, r - dim, 2 * dim, 2 * dim));
+    int dim = sp/4;
+    int left = max(0, c - dim);
+    int top = max(0, r - dim);
+    int width = min(tmp.cols - left, 2 * dim);
+    int height = min(tmp.rows - top, 2 * dim);
+    assert(width >= 0);
+    assert(height >= 0);
+    Mat masked = tmp(Rect(left, top, width, height));
     vector<Point> whites;
     if (countNonZero(masked) > 0) {
         findNonZero(masked, whites);
     }
-    return whites.size() < 4 * dim;
+    return whites.size() < (unsigned int)(width * height / 2);
 }
 
 } // namespace
