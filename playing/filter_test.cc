@@ -63,7 +63,7 @@ double get_angle_fft(Mat& input) {
 
     // Threshold
     Mat thresholded;
-    threshold(magI, thresholded, 128., 255., THRESH_BINARY);
+    threshold(magI, thresholded, 128., 255., THRESH_BINARY | THRESH_OTSU);
 
     // Get rotation
     int midr = thresholded.rows / 2;
@@ -198,7 +198,8 @@ void hough_playing_for_grid_outline(Mat& input, Mat& output) {
 // crossword mask
 void get_cw_mask(Mat& input, Mat& outputMask) {
     Mat filled = input.clone();
-    threshold(filled, filled, 128., 255., THRESH_BINARY);
+    threshold(filled, filled, 0., 255., THRESH_BINARY | THRESH_OTSU);
+    showit(filled);
     // Fill from all corners
     int in = 1;
     Scalar col = Scalar(0,0,0);
@@ -301,7 +302,7 @@ bool is_black_square(Mat& input, int grid_count, int row, int col) {
     int c = int(double(col) * sp + sp / 2);
 
     Mat tmp;
-    threshold(input, tmp, 128., 255., THRESH_BINARY);
+    threshold(input, tmp, 128., 255., THRESH_BINARY | THRESH_OTSU);
 
     unsigned int dim = int(sp/4);
     int DIM = int(dim);
