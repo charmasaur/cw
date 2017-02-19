@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <div>
+      cw-mungo admin!
+    </div>
+    <br>
+    <div>
+      URL: {{url}}
+      <br>
+      Auth: {{auth}}
+      <form action=admin/set_backend_info method=post enctype=multipart/form-data>
+        <input type="text" name="url"/><br>
+        <input type="text" name="auth"/><br>
+        <input type="submit" value="Set"/>
+      </form>
+    </div>
+  </body>
+</html>

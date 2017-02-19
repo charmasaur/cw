@@ -3,6 +3,8 @@ from google.appengine.api import urlfetch
 import base64
 import json
 
+import grid_getter_config
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -16,12 +18,13 @@ def go():
     file = request.files['image_file']
     ext = file.filename.split(".")[-1]
 
+    ggc = grid_getter_config.get()
     bdata = base64.b64encode(file.read())
     response = json.loads(urlfetch.fetch(
-            url="https://api.algorithmia.com/v1/algo/charmasaur/crossword_extractor/b2ff37c38366f2e5e6b13de689c5955af9ee45e1",
+            url=ggc.url,
             payload='{"b64data":"' + bdata + '"}',
             method=urlfetch.POST,
-            headers={'Content-Type': 'application/json', 'Authorization': 'Simple sim8kOZx7NjRjfIei246r8rCNl01'}).content)
+            headers={'Content-Type': 'application/json', 'Authorization': ggc.auth}).content)
 
     if not "result" in response:
         return "Backend request failed: " + json.dumps(response)
