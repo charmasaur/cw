@@ -5,6 +5,7 @@ semantics_test
 *.jpg
 *.JPG
 *.png
+*.pdf
 *.swp
 testing/
 data/
