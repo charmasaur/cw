@@ -18,13 +18,13 @@ def go():
     file = request.files['image_file']
     ext = file.filename.split(".")[-1]
 
-    ggc = grid_getter_config.get()
+    url, auth = grid_getter_config.get()
     bdata = base64.b64encode(file.read())
     response = json.loads(urlfetch.fetch(
-            url=ggc.url,
+            url=url,
             payload='{"b64data":"' + bdata + '"}',
             method=urlfetch.POST,
-            headers={'Content-Type': 'application/json', 'Authorization': ggc.auth}).content)
+            headers={'Content-Type': 'application/json', 'Authorization': auth}).content)
 
     if not "result" in response:
         return "Backend request failed: " + json.dumps(response)

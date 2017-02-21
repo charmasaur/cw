@@ -10,8 +10,5 @@ def admin():
 
 @app.route('/admin/set_backend_info', methods=['POST'])
 def set_backend_info():
-    config = grid_getter_config.get()
-    config.url = request.form['url']
-    config.auth = request.form['auth']
-    config.put()
+    grid_getter_config.update(request.form['url'], request.form['auth'])
     return redirect('/admin')
