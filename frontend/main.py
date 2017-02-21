@@ -3,6 +3,7 @@ from google.appengine.api import urlfetch
 import base64
 import json
 
+import data_cache
 import grid_getter_config
 
 app = Flask(__name__)
@@ -20,6 +21,25 @@ def go():
 
     url, auth = grid_getter_config.get()
     bdata = base64.b64encode(file.read())
+    # data cache key
+    # TODO: Shouldn't do this -- instead we should clear the database when the URL changes
+    dckey = bdata + str(ggc.index)
+    data = data_cache.get(dckey)
+    msg = ''
+    if data:
+        msg = 'Using cached result!'
+    if not data:
+        success, data = get_data_from_backend(bdata, url, auth)
+        if success:
+            data_cache.put(dckey, data)
+
+    return render_template(
+            "cw.html",
+            image_data='data:image/' + ext + ';base64,' + bdata,
+            cw_data=data,
+            message=msg)
+
+def get_data_from_backend(bdata, url, auth):
     response = json.loads(urlfetch.fetch(
             url=url,
             payload='{"b64data":"' + bdata + '"}',
@@ -27,16 +47,13 @@ def go():
             headers={'Content-Type': 'application/json', 'Authorization': auth}).content)
 
     if not "result" in response:
-        return "Backend request failed: " + json.dumps(response)
+        return (False, "Backend request failed: " + json.dumps(response))
 
     data = response["result"]
     data = data.replace("|","\n")
     data = data + "\n"
     data = data + get_clues(data)
-    return render_template(
-            "cw.html",
-            image_data='data:image/' + ext + ';base64,' + bdata,
-            cw_data=data)
+    return (True, data)
 
 def get_label(d):
     if d == 0:
