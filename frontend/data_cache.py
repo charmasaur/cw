@@ -1,7 +1,7 @@
 from google.appengine.ext import ndb
 import hashlib
 
-class DataCache(ndb.Model):
+class DataItem(ndb.Model):
     data = ndb.StringProperty()
 
 def hash(key):
@@ -11,9 +11,9 @@ def hash(key):
 
 def get_item(key):
     hsh = hash(key)
-    item = ndb.Key(DataCache, hsh).get()
+    item = ndb.Key(DataItem, hsh).get()
     if not item:
-        item = DataCache(id=hsh)
+        item = DataItem(id=hsh)
     return item
 
 def put(key, data):
