@@ -21,17 +21,17 @@ def go():
 
     url, auth = grid_getter_config.get()
     bdata = base64.b64encode(file.read())
-    # data cache key
-    # TODO: Shouldn't do this -- instead we should clear the database when the URL changes
-    dckey = bdata + str(ggc.index)
-    data = data_cache.get(dckey)
+
+    # if the data is already cached just use that, otherwise query the backend (caching the data if
+    # the query succeeds)
+    data = data_cache.get(bdata)
     msg = ''
     if data:
         msg = 'Using cached result!'
     if not data:
         success, data = get_data_from_backend(bdata, url, auth)
         if success:
-            data_cache.put(dckey, data)
+            data_cache.put(bdata, data)
 
     return render_template(
             "cw.html",

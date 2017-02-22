@@ -24,3 +24,7 @@ def put(key, data):
 def get(key):
     item = get_item(key)
     return item.data
+
+def invalidate():
+    for item in DataItem.query().fetch():
+        item.key.delete()
