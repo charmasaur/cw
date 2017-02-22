@@ -50,6 +50,11 @@ function onSubmit() {
   }
 
   for (var i = 0; i < text.length; i++) {
+    r = entry.start_r + i * rdiff;
+    c = entry.start_c + i * cdiff;
+    if (cell_letter[r][c].nodeValue != "" && cell_letter[r][c].nodeValue != text[i]) {
+      alert("Conflict: " + cell_letter[r][c].nodeValue + " vs " + text[i]);
+    }
     cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
   }
   return false;
