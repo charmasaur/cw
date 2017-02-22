@@ -237,7 +237,14 @@ function init_cw(file) {
   init_labels();
 }
 
+function init_user_input(cache_key) {
+  // TODO: if cache_key is present and equal to last cookie, load inputs from cookie. otherwise
+  // clear cookie
+  console.log(cache_key);
+}
+
 window.onload = function() {
   init_image(image_data);
   init_cw(cw_data);
+  init_user_input(cache_key);
 }

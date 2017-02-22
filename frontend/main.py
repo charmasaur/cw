@@ -1,6 +1,7 @@
 from flask import Markup, Flask, redirect, request, render_template
 from google.appengine.api import urlfetch
 import base64
+import hashlib
 import json
 
 import data_cache
@@ -25,19 +26,33 @@ def go():
     # if the data is already cached just use that, otherwise query the backend (caching the data if
     # the query succeeds)
     data = data_cache.get(bdata)
+    # status message to show on the cw page. we just use this to tell the user whether or not
+    # they're using a cached crossword.
     msg = ''
+    # cache key used to decide whether or not to try to load user progress from cookies. this
+    # should be a hash of bdata and data (that is, image data and semantic data), because we can't
+    # be sure that if one is the same then the other is too.
+    cache_key = ''
     if data:
         msg = 'Using cached result!'
     if not data:
         success, data = get_data_from_backend(bdata, url, auth)
         if success:
             data_cache.put(bdata, data)
+    cache_key = get_cache_key(bdata, data)
 
     return render_template(
             "cw.html",
             image_data='data:image/' + ext + ';base64,' + bdata,
             cw_data=data,
+            cache_key=cache_key,
             message=msg)
+
+def get_cache_key(bdata, data):
+    m = hashlib.md5()
+    m.update(bdata)
+    m.update(data)
+    return m.hexdigest()
 
 def get_data_from_backend(bdata, url, auth):
     response = json.loads(urlfetch.fetch(
