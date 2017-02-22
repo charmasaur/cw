@@ -5,8 +5,8 @@ app = Flask(__name__)
 
 @app.route('/admin', methods=['GET'])
 def admin():
-    config = grid_getter_config.get()
-    return render_template("admin.html", url=config.url, auth=config.auth)
+    url, auth = grid_getter_config.get()
+    return render_template("admin.html", url=url, auth=auth)
 
 @app.route('/admin/set_backend_info', methods=['POST'])
 def set_backend_info():
