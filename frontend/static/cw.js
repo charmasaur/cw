@@ -57,6 +57,7 @@ function onSubmit() {
     }
     cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
   }
+  save_user_input();
   return false;
 }
 
@@ -237,10 +238,95 @@ function init_cw(file) {
   init_labels();
 }
 
+function get_and_remove_item(name) {
+  val = localStorage.getItem(name);
+  localStorage.removeItem(name);
+  return val;
+}
+
+function put_item(name, val) {
+  localStorage.setItem(name, val);
+}
+
+function is_storage_available() {
+  try {
+    localStorage.setItem("test", "test");
+    localStorage.removeItem("test");
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function save_user_input() {
+  if (!is_storage_available()) {
+    console.log("Storage not available");
+    return;
+  }
+
+  // remove the old data
+  get_and_remove_item("user_input");
+
+  val = "";
+  for (var r = 0; r < height; r++) {
+    for (var c = 0; c < width; c++) {
+      val += cell_letter[r][c].nodeValue + "|";
+    }
+  }
+
+  console.log("Saving input");
+  put_item("user_input", val);
+}
+
 function init_user_input(cache_key) {
-  // TODO: if cache_key is present and equal to last cookie, load inputs from cookie. otherwise
-  // clear cookie
-  console.log(cache_key);
+  if (!is_storage_available()) {
+    console.log("Storage not available");
+    return;
+  }
+
+  // get and remove the old cache key and input
+  old_cache_key = get_and_remove_item("cache_key");
+  old_user_input = get_and_remove_item("user_input");
+
+  // save the new cache key
+  put_item("cache_key", cache_key);
+
+  // no more to do if the keys are different
+  if (old_cache_key != cache_key) {
+    console.log("Different keys, not loading saved data");
+    return;
+  }
+
+  if (!old_user_input) {
+    console.log("Old input missing, not loading saved data");
+    return;
+  }
+
+  vals = old_user_input.split("|");
+  if (vals.length != width * height + 1) {
+    console.log("Wrong number of saved values, not loading saved data");
+    return;
+  }
+
+  console.log("Loading input");
+  for (var r = 0; r < height; r++) {
+    for (var c = 0; c < width; c++) {
+      cell_letter[r][c].nodeValue = vals[r * width + c];
+    }
+  }
+
+  // remember to save the input
+  save_user_input();
+}
+
+function onClearSavedDataSubmit() {
+  if (!is_storage_available()) {
+    console.log("Storage not available");
+    return;
+  }
+  console.log("Clearing saved data");
+  localStorage.clear();
+  return false;
 }
 
 window.onload = function() {
