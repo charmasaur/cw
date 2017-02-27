@@ -49,10 +49,19 @@ function onSubmit() {
     cdiff = 0;
   }
 
+  // returns whether (r, c) is part of a filled-in clue in the direction specified by (rd,cd)
+  var is_part_of_clue = function(r, c, rd, cd) {
+    return (rd == 1 && r - rd >= 0 && cell_letter[r-rd][c].nodeValue != "")
+        || (rd == 1 && r + rd < height && cell_letter[r+rd][c].nodeValue != "")
+        || (cd == 1 && c - cd >= 0 && cell_letter[r][c-cd].nodeValue != "")
+        || (cd == 1 && c + cd < width && cell_letter[r][c+cd].nodeValue != "");
+  }
+
   for (var i = 0; i < text.length; i++) {
     r = entry.start_r + i * rdiff;
     c = entry.start_c + i * cdiff;
-    if (cell_letter[r][c].nodeValue != "" && cell_letter[r][c].nodeValue != text[i]) {
+    if (cell_letter[r][c].nodeValue != "" && cell_letter[r][c].nodeValue != text[i]
+        && is_part_of_clue(r, c, cdiff, rdiff)) {
       alert("Conflict: " + cell_letter[r][c].nodeValue + " vs " + text[i]);
     }
     cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
