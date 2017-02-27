@@ -30,7 +30,7 @@ function onSubmit() {
   var across = document.forms["new"]["direction"].value == 'Across';
   var text = document.forms["new"]["text"].value.toUpperCase();
 
-  entry = find_entry(num, across);
+  var entry = find_entry(num, across);
   if (entry == null) {
     alert("Entry not found");
     return false;
