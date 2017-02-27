@@ -1,5 +1,5 @@
 from flask import Markup, Flask, redirect, request, render_template
-from google.appengine.api import urlfetch
+from google.appengine.api import images, urlfetch
 import base64
 import hashlib
 import json
@@ -47,6 +47,20 @@ def go():
             cw_data=data,
             cache_key=cache_key,
             message=msg)
+
+@app.route('/preview', methods=['POST'])
+def preview():
+    if 'image_file' not in request.files:
+        return redirect('/')
+    file = request.files['image_file']
+    ext = file.filename.split(".")[-1]
+
+    resized = images.resize(file.read(), 1000, 1000)
+    bdata = base64.b64encode(resized)
+
+    return render_template(
+            "preview.html",
+            image_data='data:image/' + ext + ';base64,' + bdata)
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()
