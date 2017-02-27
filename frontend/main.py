@@ -55,6 +55,7 @@ def get_cache_key(bdata, data):
     return m.hexdigest()
 
 def get_data_from_backend(bdata, url, auth):
+    urlfetch.set_default_fetch_deadline(15)
     response = json.loads(urlfetch.fetch(
             url=url,
             payload='{"b64data":"' + bdata + '"}',
