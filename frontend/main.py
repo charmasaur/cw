@@ -40,17 +40,17 @@ def go():
     # status message to show on the cw page. we just use this to tell the user whether or not
     # they're using a cached crossword.
     msg = ''
-    # cache key used to decide whether or not to try to load user progress from cookies. this
-    # should be a hash of bdata and data (that is, image data and semantic data), because we can't
-    # be sure that if one is the same then the other is too.
-    cache_key = ''
     if cw_data:
         msg = 'Using cached result!'
     if not cw_data:
         success, cw_data = get_data_from_backend(image_bdata)
         if success:
             data_cache.put(image_bdata, cw_data)
-    cache_key = get_cache_key(bdata, data)
+
+    # cache key used to decide whether or not to try to load user progress from local storage. this
+    # should be a hash of bdata and data (that is, image data and semantic data), because we can't
+    # be sure that if one is the same then the other is too.
+    cache_key = get_cache_key(image_bdata, cw_data)
 
     return render_template(
             "cw.html",
