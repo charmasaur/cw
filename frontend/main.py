@@ -61,17 +61,27 @@ def go():
 
 @app.route('/preview', methods=['POST'])
 def preview():
-    if 'image_file' not in request.files:
+    image_ext, image_data = get_ext_and_data(request)
+    if not image_ext or not image_data:
         return redirect('/')
-    file = request.files['image_file']
-    ext = file.filename.split(".")[-1]
 
-    resized = images.resize(file.read(), 1000, 1000)
-    bdata = base64.b64encode(resized)
+    message = ""
+    try:
+        image_data = images.resize(image_data, 1000, 1000)
+        if 'rotate_cw' in request.form:
+            image_data = images.rotate(image_data, 90);
+        if 'rotate_ccw' in request.form:
+            image_data = images.rotate(image_data, -90);
+    except:
+        message = "Can't process image"
+
+    image_bdata = base64.b64encode(image_data)
 
     return render_template(
             "preview.html",
-            image_data='data:image/' + ext + ';base64,' + bdata)
+            image_bdata=image_bdata,
+            image_ext=image_ext,
+            message=message)
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()

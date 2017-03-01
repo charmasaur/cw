@@ -3,8 +3,22 @@
   <head>
   </head>
   <body>
+    <div name="status">{{message}}</div>
     <div name="image">
-      <img name="image_image" src={{image_data|tojson}}/>
+      <img name="image_image" src="data:image/{{image_ext}};base64,{{image_bdata}}"/>
+    </div>
+    <div name=buttons>
+      <form method=post enctype=multipart/form-data>
+        <input type="submit" name="rotate_cw" value="Rotate clockwise"/>
+        <input type="submit" name="rotate_ccw" value="Rotate anticlockwise"/>
+        <input type="hidden" name="image_bdata" value="{{image_bdata}}"/>
+        <input type="hidden" name="image_ext" value="{{image_ext}}"/>
+      </form>
+      <form action="go" method=post enctype=multipart/form-data>
+        <input type="submit" name="go" value="Go"/>
+        <input type="hidden" name="image_bdata" value="{{image_bdata}}"/>
+        <input type="hidden" name="image_ext" value="{{image_ext}}"/>
+      </form>
     </div>
   </body>
 </html>
