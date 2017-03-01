@@ -10,23 +10,33 @@ import clue_getter
 
 app = Flask(__name__)
 
+def get_ext_and_data(request):
+    ext = None
+    data = None
+    if 'image_file' in request.files:
+        file = request.files['image_file']
+        ext = file.filename.split(".")[-1]
+        data = file.read();
+    if 'image_bdata' in request.form and 'image_ext' in request.form:
+        data = base64.b64decode(request.form['image_bdata'])
+        ext = request.form['image_ext']
+    return ext, data
+
 @app.route('/', methods=['GET'])
 def cw_mungo():
     return render_template("welcome.html")
 
 @app.route('/go', methods=['POST'])
 def go():
-    if 'image_file' not in request.files:
+    image_ext, image_data = get_ext_and_data(request)
+    if not image_ext or not image_data:
         return redirect('/')
-    file = request.files['image_file']
-    ext = file.filename.split(".")[-1]
 
-    url, auth = grid_getter_config.get()
-    bdata = base64.b64encode(file.read())
+    image_bdata = base64.b64encode(image_data)
 
     # if the data is already cached just use that, otherwise query the backend (caching the data if
     # the query succeeds)
-    data = data_cache.get(bdata)
+    cw_data = data_cache.get(image_bdata)
     # status message to show on the cw page. we just use this to tell the user whether or not
     # they're using a cached crossword.
     msg = ''
@@ -34,18 +44,18 @@ def go():
     # should be a hash of bdata and data (that is, image data and semantic data), because we can't
     # be sure that if one is the same then the other is too.
     cache_key = ''
-    if data:
+    if cw_data:
         msg = 'Using cached result!'
-    if not data:
-        success, data = get_data_from_backend(bdata, url, auth)
+    if not cw_data:
+        success, cw_data = get_data_from_backend(image_bdata)
         if success:
-            data_cache.put(bdata, data)
+            data_cache.put(image_bdata, cw_data)
     cache_key = get_cache_key(bdata, data)
 
     return render_template(
             "cw.html",
-            image_data='data:image/' + ext + ';base64,' + bdata,
-            cw_data=data,
+            image_data='data:image/' + image_ext + ';base64,' + image_bdata,
+            cw_data=cw_data,
             cache_key=cache_key,
             message=msg)
 
@@ -69,8 +79,9 @@ def get_cache_key(bdata, data):
     m.update(data)
     return m.hexdigest()
 
-def get_data_from_backend(bdata, url, auth):
+def get_data_from_backend(bdata):
     urlfetch.set_default_fetch_deadline(15)
+    url, auth = grid_getter_config.get()
     response = json.loads(urlfetch.fetch(
             url=url,
             payload='{"b64data":"' + bdata + '"}',
