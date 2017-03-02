@@ -1,0 +1,11 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+module: extractor
+
+handlers:
+- url: /admin.*
+  script: extractor.app
+  login: admin
+- url: /extract.*
+  script: extractor.app

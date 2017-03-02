@@ -1,12 +1,7 @@
-from flask import Markup, Flask, redirect, request, render_template
+from flask import Flask, redirect, request, render_template
 from google.appengine.api import images, urlfetch
 import base64
 import hashlib
-import json
-
-import data_cache
-import grid_getter_config
-import clue_getter
 
 app = Flask(__name__)
 
@@ -33,19 +28,12 @@ def go():
         return redirect('/')
 
     image_bdata = base64.b64encode(image_data)
-
-    # if the data is already cached just use that, otherwise query the backend (caching the data if
-    # the query succeeds)
-    cw_data = data_cache.get(image_bdata)
-    # status message to show on the cw page. we just use this to tell the user whether or not
-    # they're using a cached crossword.
-    msg = ''
-    if cw_data:
-        msg = 'Using cached result!'
-    if not cw_data:
-        success, cw_data = get_data_from_backend(image_bdata)
-        if success:
-            data_cache.put(image_bdata, cw_data)
+    urlfetch.set_default_fetch_deadline(20)
+    cw_data = urlfetch.fetch(
+            #url="http://localhost:8081/extract",
+            url="http://extractor.cw-mungo.appspot.com/extract",
+            payload=image_bdata,
+            method=urlfetch.POST).content
 
     # cache key used to decide whether or not to try to load user progress from local storage. this
     # should be a hash of bdata and data (that is, image data and semantic data), because we can't
@@ -56,8 +44,7 @@ def go():
             "cw.html",
             image_data='data:image/' + image_ext + ';base64,' + image_bdata,
             cw_data=cw_data,
-            cache_key=cache_key,
-            message=msg)
+            cache_key=cache_key)
 
 @app.route('/preview', methods=['POST'])
 def preview():
@@ -88,21 +75,3 @@ def get_cache_key(bdata, data):
     m.update(bdata)
     m.update(data)
     return m.hexdigest()
-
-def get_data_from_backend(bdata):
-    urlfetch.set_default_fetch_deadline(15)
-    url, auth = grid_getter_config.get()
-    response = json.loads(urlfetch.fetch(
-            url=url,
-            payload='{"b64data":"' + bdata + '"}',
-            method=urlfetch.POST,
-            headers={'Content-Type': 'application/json', 'Authorization': auth}).content)
-
-    if not "result" in response:
-        return (False, "Backend request failed: " + json.dumps(response))
-
-    data = response["result"]
-    data = data.replace("|","\n")
-    data = data + "\n"
-    data = data + clue_getter.get_clues(data)
-    return (True, data)
