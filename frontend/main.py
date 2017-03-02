@@ -3,6 +3,8 @@ from google.appengine.api import images, urlfetch
 import base64
 import hashlib
 
+import image_cache
+
 app = Flask(__name__)
 
 def get_ext_and_data(request):
@@ -18,16 +20,17 @@ def get_ext_and_data(request):
     return ext, data
 
 @app.route('/', methods=['GET'])
-def cw_mungo():
+def welcome():
     return render_template("welcome.html")
 
-@app.route('/go', methods=['POST'])
-def go():
-    image_ext, image_data = get_ext_and_data(request)
-    if not image_ext or not image_data:
-        return redirect('/')
+@app.route('/cw', methods=['GET'])
+def cw():
+    args = request.args.to_dict()
+    if not 'cw_id' in args:
+        return "Not found"
+    cw_id = args['cw_id']
+    image_bdata, image_ext = image_cache.get(cw_id)
 
-    image_bdata = base64.b64encode(image_data)
     urlfetch.set_default_fetch_deadline(20)
     cw_data = urlfetch.fetch(
             #url="http://localhost:8081/extract",
@@ -45,6 +48,16 @@ def go():
             image_data='data:image/' + image_ext + ';base64,' + image_bdata,
             cw_data=cw_data,
             cache_key=cache_key)
+
+@app.route('/go', methods=['POST'])
+def go():
+    image_ext, image_data = get_ext_and_data(request)
+    if not image_ext or not image_data:
+        return redirect('/')
+
+    image_bdata = base64.b64encode(image_data)
+    msg = image_cache.put(image_bdata, image_ext)
+    return redirect('/cw?cw_id=' + msg)
 
 @app.route('/preview', methods=['POST'])
 def preview():
