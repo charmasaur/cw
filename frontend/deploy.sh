@@ -1,2 +1,3 @@
 # Make sure App Engine SDK is in your PATH
-appcfg.py -A cw-mungo -V 1 update .
+# If you need to update the extractor then use extractor/deploy.sh
+appcfg.py -A cw-mungo -V 1 update app.yaml
