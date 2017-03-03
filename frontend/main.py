@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, render_template
+from flask import Flask, redirect, request, render_template, url_for
 from google.appengine.api import images, urlfetch
 import base64
 import hashlib
@@ -21,9 +21,14 @@ def get_ext_and_data(request):
 
 @app.route('/', methods=['GET'])
 def welcome():
+    recent_results = image_cache.get_recents(10)
+    recents = []
+    for date, cw_id in recent_results:
+        recents.append({'date':date.strftime("%H:%M:%S %d %b UTC"), 'url':url_for('cw', cw_id=cw_id)})
+
     return render_template(
             "welcome.html",
-            recents=[{'date':'1/3/37'}, {'date':'2/4/56'}])
+            recents=recents)
 
 @app.route('/cw', methods=['GET'])
 def cw():
@@ -31,7 +36,7 @@ def cw():
     if not 'cw_id' in args:
         return "Not found"
     cw_id = args['cw_id']
-    image_bdata, image_ext = image_cache.get(cw_id)
+    image_bdata, image_ext, date_added = image_cache.get(cw_id)
 
     urlfetch.set_default_fetch_deadline(20)
     cw_data = urlfetch.fetch(

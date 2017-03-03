@@ -19,7 +19,7 @@
       Recently uploaded:
       <br>
       {% for recent in recents %}
-      <a href="http://hithere">{{ recent['date'] }}</a>
+      <a href="{{recent['url']}}">{{recent['date']}}</a>
       <br>
       {% endfor %}
     </div>
