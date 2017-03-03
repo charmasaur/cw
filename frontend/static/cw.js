@@ -28,7 +28,7 @@ function find_entry(index, is_across) {
 function onSubmit() {
   var num = document.forms["new"]["number"].value;
   var across = document.forms["new"]["direction"].value == 'Across';
-  var text = document.forms["new"]["text"].value.toUpperCase();
+  var text = document.forms["new"]["text"].value.toUpperCase().trim();
 
   var entry = find_entry(num, across);
   if (entry == null) {
