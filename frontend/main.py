@@ -22,6 +22,9 @@ def get_ext_and_data(request):
 @app.route('/', methods=['GET'])
 def welcome():
     return render_template("welcome.html")
+    return render_template(
+            "welcome.html",
+            recents=[{'date':'1/3/37'}, {'date':'2/4/56'}])
 
 @app.route('/cw', methods=['GET'])
 def cw():
