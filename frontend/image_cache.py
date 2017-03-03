@@ -3,10 +3,11 @@ from google.appengine.ext import ndb
 class ImageDataItem(ndb.Model):
     bdata = ndb.StringProperty(indexed=False)
     ext = ndb.StringProperty()
+    cw_data = ndb.StringProperty()
     date = ndb.DateTimeProperty(auto_now_add=True)
 
-def put(bdata, ext):
-    item = ImageDataItem(bdata=bdata, ext=ext)
+def put(bdata, ext, cw_data):
+    item = ImageDataItem(bdata=bdata, ext=ext, cw_data=cw_data)
     return item.put().urlsafe()
 
 def get(key):
@@ -16,7 +17,11 @@ def get(key):
     item = ndb.Key(urlsafe=key).get()
     if not item:
         return None
-    return item.bdata, item.ext, item.date
+    if not item.cw_data:
+        # This is an old entry from before we added cw_data, remove it
+        item.key.delete()
+        return None
+    return item.bdata, item.ext, item.cw_data, item.date
 
 def get_recents(count):
     results = ImageDataItem.query().order(-ImageDataItem.date).fetch(count)

@@ -34,16 +34,13 @@ def welcome():
 def cw():
     args = request.args.to_dict()
     if not 'cw_id' in args:
-        return "Not found"
+        return "No ID specified"
     cw_id = args['cw_id']
-    image_bdata, image_ext, date_added = image_cache.get(cw_id)
 
-    urlfetch.set_default_fetch_deadline(20)
-    cw_data = urlfetch.fetch(
-            #url="http://localhost:8081/extract",
-            url="http://extractor.cw-mungo.appspot.com/extract",
-            payload=image_bdata,
-            method=urlfetch.POST).content
+    result = image_cache.get(cw_id)
+    if not result:
+        return "Not found"
+    image_bdata, image_ext, cw_data, date_added = result
 
     # cache key used to decide whether or not to try to load user progress from local storage. this
     # should be a hash of bdata and data (that is, image data and semantic data), because we can't
@@ -63,7 +60,14 @@ def go():
         return redirect('/')
 
     image_bdata = base64.b64encode(image_data)
-    msg = image_cache.put(image_bdata, image_ext)
+
+    urlfetch.set_default_fetch_deadline(20)
+    cw_data = urlfetch.fetch(
+            url="http://extractor.cw-mungo.appspot.com/extract",
+            payload=image_bdata,
+            method=urlfetch.POST).content
+
+    msg = image_cache.put(image_bdata, image_ext, cw_data)
     return redirect('/cw?cw_id=' + msg)
 
 @app.route('/preview', methods=['POST'])
