@@ -64,6 +64,9 @@ function onSubmit() {
     }
     cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
   }
+
+  document.getElementsByName("text")[0].value = "";
+
   save_user_input();
   return false;
 }
