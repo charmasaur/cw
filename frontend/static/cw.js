@@ -252,10 +252,12 @@ function init_cw(file) {
   init_labels();
 }
 
-function get_and_remove_item(name) {
-  val = localStorage.getItem(name);
+function get_item(name) {
+  return localStorage.getItem(name);
+}
+
+function remove_item(name) {
   localStorage.removeItem(name);
-  return val;
 }
 
 function put_item(name, val) {
@@ -279,7 +281,8 @@ function save_user_input() {
   }
 
   // remove the old data
-  get_and_remove_item("user_input");
+  remove_item("cache_key");
+  remove_item("user_input");
 
   val = "";
   for (var r = 0; r < height; r++) {
@@ -289,27 +292,26 @@ function save_user_input() {
   }
 
   console.log("Saving input");
+  put_item("cache_key", cache_key);
   put_item("user_input", val);
 }
 
-function init_user_input(cache_key) {
+function init_user_input() {
   if (!is_storage_available()) {
     console.log("Storage not available");
     return;
   }
 
-  // get and remove the old cache key and input
-  old_cache_key = get_and_remove_item("cache_key");
-  old_user_input = get_and_remove_item("user_input");
+  old_cache_key = get_item("cache_key");
 
-  // save the new cache key
-  put_item("cache_key", cache_key);
-
-  // no more to do if the keys are different
+  // no more to do if the keys are different. don't clear anything yet though, in case the user
+  // didn't actually want this crossword and is just here temporarily
   if (old_cache_key != cache_key) {
     console.log("Different keys, not loading saved data");
     return;
   }
+
+  old_user_input = get_item("user_input");
 
   if (!old_user_input) {
     console.log("Old input missing, not loading saved data");
@@ -328,9 +330,6 @@ function init_user_input(cache_key) {
       cell_letter[r][c].nodeValue = vals[r * width + c];
     }
   }
-
-  // remember to save the input
-  save_user_input();
 }
 
 function onClearSavedDataSubmit() {
@@ -346,5 +345,5 @@ function onClearSavedDataSubmit() {
 window.onload = function() {
   init_image(image_data);
   init_cw(cw_data);
-  init_user_input(cache_key);
+  init_user_input();
 }
