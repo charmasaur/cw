@@ -166,11 +166,7 @@ function onCellClicked(r, c) {
     is_swap = true;
   }
 
-  if (set_across) {
-    document.getElementsByName("direction")[0].value = "Across";
-  } else {
-    document.getElementsByName("direction")[0].value = "Down";
-  }
+  document.getElementsByName("direction")[0].selectedIndex = set_across ? 0 : 1;
 
   var txt = document.getElementsByName("text")[0];
   // Only clear the text if this wasn't a swap (if it was a swap then the user might have
