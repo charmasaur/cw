@@ -23,6 +23,14 @@ function find_entry(index, is_across) {
   return null;
 }
 
+// returns whether (r, c) is part of a filled-in clue in the direction specified by (rd,cd)
+function is_part_of_clue(r, c, rd, cd) {
+  return (rd == 1 && r - rd >= 0 && cell_letter[r-rd][c].nodeValue != "")
+      || (rd == 1 && r + rd < height && cell_letter[r+rd][c].nodeValue != "")
+      || (cd == 1 && c - cd >= 0 && cell_letter[r][c-cd].nodeValue != "")
+      || (cd == 1 && c + cd < width && cell_letter[r][c+cd].nodeValue != "");
+}
+
 function onSubmit() {
   var num = document.forms["new"]["number"].value;
   var across = document.forms["new"]["direction"].value == 'Across';
@@ -45,14 +53,6 @@ function onSubmit() {
   } else {
     rdiff = 1;
     cdiff = 0;
-  }
-
-  // returns whether (r, c) is part of a filled-in clue in the direction specified by (rd,cd)
-  var is_part_of_clue = function(r, c, rd, cd) {
-    return (rd == 1 && r - rd >= 0 && cell_letter[r-rd][c].nodeValue != "")
-        || (rd == 1 && r + rd < height && cell_letter[r+rd][c].nodeValue != "")
-        || (cd == 1 && c - cd >= 0 && cell_letter[r][c-cd].nodeValue != "")
-        || (cd == 1 && c + cd < width && cell_letter[r][c+cd].nodeValue != "");
   }
 
   for (var i = 0; i < text.length; i++) {
@@ -158,8 +158,8 @@ function onCellClicked(r, c) {
   } else if (find_entry(index, false) == null) {
     set_across = true;
   } else if (old_index != index) {
-    // Default to across if the index has changed.
-    set_across = true;
+    // Default to across, unless across is filled in and down isn't.
+    set_across = !is_part_of_clue(r, c, 0, 1) || is_part_of_clue(r, c, 1, 0);
   } else {
     // We're on the same index and both are valid, so just swap.
     set_across = document.getElementsByName("direction")[0].value != "Across";
