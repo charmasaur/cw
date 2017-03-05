@@ -78,11 +78,13 @@ def preview():
 
     message = ""
     try:
-        image_data = images.resize(image_data, 1000, 1000)
+        image_object = images.Image(image_data)
+        image_object.resize(width=1000, height=1000)
         if 'rotate_cw' in request.form:
-            image_data = images.rotate(image_data, 90);
+            image_object.rotate(90);
         if 'rotate_ccw' in request.form:
-            image_data = images.rotate(image_data, -90);
+            image_object.rotate(-90);
+        image_data = image_object.execute_transforms(output_encoding=images.JPEG)
     except:
         message = "Can't process image"
 
