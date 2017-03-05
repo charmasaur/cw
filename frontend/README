@@ -1,6 +1,0 @@
-App engine server for the frontend (accepts CW images, sends to the backend for extraction, then serves the crossword interface).
-
-You'll need to put Flask in a lib/ directory:
-pip install -t lib flask
-
-And simlink to train_py.py (or just put train_py.py in here).
