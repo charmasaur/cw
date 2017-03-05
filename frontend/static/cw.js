@@ -151,15 +151,19 @@ function onCellClicked(r, c) {
   num.value = index;
 
   var set_across;
+  var is_swap = false;
 
   if (find_entry(index, true) == null) {
     set_across = false;
   } else if (find_entry(index, false) == null) {
     set_across = true;
-    document.getElementsByName("direction")[0].value = "Across";
+  } else if (old_index != index) {
+    // Default to across if the index has changed.
+    set_across = true;
   } else {
-    // Default to across if the index has changed or if across was selected last time.
-    set_across = old_index != index || document.getElementsByName("direction")[0].value != "Across";
+    // We're on the same index and both are valid, so just swap.
+    set_across = document.getElementsByName("direction")[0].value != "Across";
+    is_swap = true;
   }
 
   if (set_across) {
@@ -169,7 +173,11 @@ function onCellClicked(r, c) {
   }
 
   var txt = document.getElementsByName("text")[0];
-  txt.value = "";
+  // Only clear the text if this wasn't a swap (if it was a swap then the user might have
+  // accidentally tried to enter the other way).
+  if (!is_swap) {
+    txt.value = "";
+  }
   txt.focus();
 }
 
