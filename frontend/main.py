@@ -1,6 +1,7 @@
 from flask import Flask, redirect, request, render_template, url_for
 from google.appengine.api import images, urlfetch
 import base64
+import datetime
 import hashlib
 
 import image_cache
@@ -24,7 +25,10 @@ def welcome():
     recent_results = image_cache.get_recents(10)
     recents = []
     for date, cw_id in recent_results:
-        recents.append({'date':date.strftime("%H:%M:%S %d %b UTC"), 'url':url_for('cw', cw_id=cw_id)})
+        recents.append({
+            'date':(date - datetime.datetime(1970,1,1)).total_seconds(),
+            'url':url_for('cw', cw_id=cw_id)
+            })
 
     return render_template(
             "welcome.html",

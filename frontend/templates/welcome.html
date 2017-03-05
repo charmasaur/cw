@@ -1,5 +1,21 @@
 <!DOCTYPE html>
 <html>
+  <script type="text/javascript">
+    function pad_int(x) {
+      return x < 10 ? "0" + x : x;
+    }
+    function to_local_time_string(stamp_seconds_string) {
+      date = new Date(parseInt(stamp_seconds_string * 1000));
+      D = date.getDate();
+      M = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
+          "Dev"][date.getMonth()];
+      Y = date.getFullYear();
+      h = pad_int(date.getHours());
+      m = pad_int(date.getMinutes());
+      s = pad_int(date.getSeconds());
+      return M + " " + D + ", " + h + ":" + m + ":" + s + " (" + Y + ")";
+    }
+  </script>
   <body>
     <div>
       Welcome to cw-mungo!
@@ -19,7 +35,11 @@
       Recently uploaded:
       <br>
       {% for recent in recents %}
-      <a href="{{recent['url']}}">{{recent['date']}}</a>
+      <a id="{{recent['date']}}" href="{{recent['url']}}"></a>
+      <script type="text/javascript">
+        stamp_string = "{{recent['date']}}";
+        document.getElementById(stamp_string).innerHTML = to_local_time_string(stamp_string);
+      </script>
       <br>
       {% endfor %}
     </div>
