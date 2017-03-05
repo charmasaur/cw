@@ -6,14 +6,12 @@ var cell_label;
 var is_cell_blocked;
 var entries;
 
-class Entry {
-  constructor(index, is_across, start_r, start_c, len) {
-    this.index = index;
-    this.is_across = is_across;
-    this.start_r = start_r;
-    this.start_c = start_c;
-    this.len = len;
-  }
+function Entry(index, is_across, start_r, start_c, len) {
+  this.index = index;
+  this.is_across = is_across;
+  this.start_r = start_r;
+  this.start_c = start_c;
+  this.len = len;
 }
 
 function find_entry(index, is_across) {
