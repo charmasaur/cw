@@ -1,0 +1,11 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+module: converter
+
+handlers:
+- url: /admin.*
+  script: converter.app
+  login: admin
+- url: /convert.*
+  script: converter.app
