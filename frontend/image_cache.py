@@ -6,6 +6,13 @@ class ImageDataItem(ndb.Model):
     cw_data = ndb.StringProperty()
     date = ndb.DateTimeProperty(auto_now_add=True)
 
+def delete(key):
+    item = ndb.Key(urlsafe=key).get()
+    if not item:
+        return False
+    item.key.delete()
+    return True
+
 def put(bdata, ext, cw_data):
     item = ImageDataItem(bdata=bdata, ext=ext, cw_data=cw_data)
     return item.put().urlsafe()

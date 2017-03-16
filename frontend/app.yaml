@@ -6,5 +6,8 @@ handlers:
 - url: /admin.*
   script: admin.app
   login: admin
+- url: /delete.*
+  script: main.app
+  login: admin
 - url: /.*
   script: main.app

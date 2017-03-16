@@ -56,7 +56,8 @@ def cw():
             "cw.html",
             image_data='data:image/' + image_ext + ';base64,' + image_bdata,
             cw_data=cw_data,
-            cache_key=cache_key)
+            cache_key=cache_key,
+            cw_id=cw_id)
 
 @app.route('/go', methods=['POST'])
 def go():
@@ -110,6 +111,21 @@ def preview():
             image_bdata=image_bdata,
             image_ext=image_ext,
             message=message)
+
+@app.route('/delete', methods=['GET'])
+def delete():
+    args = request.args.to_dict()
+    if not 'cw_id' in args:
+        return "No ID specified"
+    cw_id = args['cw_id']
+
+    if not image_cache.delete(cw_id):
+        msg = "Failed to delete " + cw_id
+    else:
+        msg = "Deleted " + cw_id
+    return render_template(
+            "delete.html",
+            msg=msg)
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()
