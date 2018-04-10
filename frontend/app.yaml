@@ -9,5 +9,13 @@ handlers:
 - url: /delete.*
   script: main.app
   login: admin
+
+- url: /home
+  static_files: static/home.html
+  upload: static/home.html
+
 - url: /.*
   script: main.app
+
+env_variables:
+  FIREBASE_PROJECT_ID: 'cw-mungo'
