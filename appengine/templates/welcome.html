@@ -17,6 +17,34 @@
       return M + " " + D + ", " + h + ":" + m + ":" + s + " (" + Y + ")";
     }
   </script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyAOJxCdSmDsKkqPQUJoUs0fJSJ_fiAdD0c",
+      authDomain: "cw-mungo.firebaseapp.com",
+      databaseURL: "https://cw-mungo.firebaseio.com",
+      projectId: "cw-mungo",
+      storageBucket: "cw-mungo.appspot.com",
+      messagingSenderId: "127965826478"
+    };
+    firebase.initializeApp(config);
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        // Hide the login button.
+        // TODO: Replace with a log out button.
+        document.getElementById("logged_in").style.display = 'block';
+        document.getElementById("logged_in_name").innerHTML = user.displayName;
+        user.getIdToken().then(function(idToken) {
+          console.log("token: " + idToken);
+        });
+      } else {
+        document.getElementById("logged_in").style.display = 'none';
+      }
+    });
+
+  </script>
   <body>
     <div>
       Welcome to cw-mungo!
@@ -27,6 +55,10 @@
         <input type="submit" value="Log in (new!!!)"/>
       </form>
       <br>
+      <div id="logged_in" style="display: none;">
+        You are logged in as <b><span id="logged_in_name"></span></b>
+        <br><br>
+      </div>
       Recently uploaded:
       <br>
       {% for recent in recents %}
