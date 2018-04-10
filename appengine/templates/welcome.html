@@ -36,6 +36,8 @@
         // TODO: Replace with a log out button.
         document.getElementById("logged_in").style.display = 'block';
         document.getElementById("logged_in_name").innerHTML = user.displayName;
+        // Get the ID token, and send it to the server to update what we show. Should we show a
+        // spinner or something?
         user.getIdToken().then(function(idToken) {
           console.log("token: " + idToken);
         });
