@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <!-- Convert a UNIX timestamp to a string (surely a library can do this...) -->
   <script type="text/javascript">
     function pad_int(x) {
       return x < 10 ? "0" + x : x;
@@ -22,6 +23,10 @@
     </div>
     <br>
     <div>
+      <form action=login method=get >
+        <input type="submit" value="Log in (new!!!)"/>
+      </form>
+      <br>
       Recently uploaded:
       <br>
       {% for recent in recents %}
