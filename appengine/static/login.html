@@ -40,7 +40,6 @@
 
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
     if (ui.isPendingRedirect()) {
-      console.log("pending redirect")
       document.getElementById("message").style.display = 'none';
     }
     ui.start('#firebaseui-auth-container', uiConfig);
