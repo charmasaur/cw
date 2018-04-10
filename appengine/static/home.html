@@ -5,46 +5,46 @@
     <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
     <script src="https://cdn.firebase.com/libs/firebaseui/2.7.0/firebaseui.js"></script>
     <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.7.0/firebaseui.css" />
-    <script>
-      // Initialize Firebase
-      var config = {
-        apiKey: "AIzaSyAOJxCdSmDsKkqPQUJoUs0fJSJ_fiAdD0c",
-        authDomain: "cw-mungo.firebaseapp.com",
-        databaseURL: "https://cw-mungo.firebaseio.com",
-        projectId: "cw-mungo",
-        storageBucket: "cw-mungo.appspot.com",
-        messagingSenderId: "127965826478"
-      };
-      firebase.initializeApp(config);
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          console.log("hello: " + user.displayName);
-          user.getIdToken().then(function(idToken) {
-            console.log("token: " + idToken);
-          });
-        } else {
-          console.log("not logged in");
-        }
-      });
-
-      function configureFirebaseLoginWidget() {
-        var uiConfig = {
-          'signInSuccessUrl': '/',
-          'signInOptions': [
-            firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-            firebase.auth.EmailAuthProvider.PROVIDER_ID
-          ],
-        };
-    
-        var ui = new firebaseui.auth.AuthUI(firebase.auth());
-        ui.start('#firebaseui-auth-container', uiConfig);
-      }
-      configureFirebaseLoginWidget();
-    </script>
-    </title>What am I doing?</title>
   </head>
   <body>
-    <h1>Hello</h1>
+    <div id="message">Log in to access saved crosswords!</div>
     <div id="firebaseui-auth-container"></div>
   </body>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyAOJxCdSmDsKkqPQUJoUs0fJSJ_fiAdD0c",
+      authDomain: "cw-mungo.firebaseapp.com",
+      databaseURL: "https://cw-mungo.firebaseio.com",
+      projectId: "cw-mungo",
+      storageBucket: "cw-mungo.appspot.com",
+      messagingSenderId: "127965826478"
+    };
+    firebase.initializeApp(config);
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        console.log("hello: " + user.displayName);
+        user.getIdToken().then(function(idToken) {
+          console.log("token: " + idToken);
+        });
+      } else {
+        console.log("not logged in");
+      }
+    });
+
+    var uiConfig = {
+      'signInSuccessUrl': '/',
+      'signInOptions': [
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.EmailAuthProvider.PROVIDER_ID
+      ],
+    };
+
+    var ui = new firebaseui.auth.AuthUI(firebase.auth());
+    if (ui.isPendingRedirect()) {
+      console.log("pending redirect")
+      document.getElementById("message").style.display = 'none';
+    }
+    ui.start('#firebaseui-auth-container', uiConfig);
+  </script>
 </html>
