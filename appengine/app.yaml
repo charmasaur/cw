@@ -11,8 +11,8 @@ handlers:
   login: admin
 
 - url: /login
-  static_files: static/home.html
-  upload: static/home.html
+  static_files: static/login.html
+  upload: static/login.html
 
 - url: /.*
   script: main.app
