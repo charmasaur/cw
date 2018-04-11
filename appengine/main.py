@@ -22,7 +22,7 @@ def get_ext_and_data(request):
     return ext, data
 
 @app.route('/', methods=['GET'])
-def welcome():
+def home():
     recent_results = image_cache.get_recents(10)
     recents = []
     for date, cw_id in recent_results:
@@ -32,7 +32,7 @@ def welcome():
             })
 
     return render_template(
-            "welcome.html",
+            "home.html",
             recents=recents)
 
 @app.route('/cw', methods=['GET'])
