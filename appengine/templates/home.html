@@ -42,14 +42,6 @@
     </div>
     <br>
     <div>
-      <form action=login method=get >
-        <input type="submit" value="Log in (new!!!)"/>
-      </form>
-      <br>
-      <div id="logged_in" style="display: none;">
-        You are logged in as <b><span id="logged_in_name"></span></b>
-        <br><br>
-      </div>
       Recently uploaded:
       <br>
       {% for recent in recents %}
@@ -65,6 +57,15 @@
         <input type="file" name="image_file"/><br>
         <input type="submit" value="Preview"/>
       </form>
+      <br>
+      <form action=login method=get >
+        <input type="submit" value="Log in (new!!!)"/>
+      </form>
+      <br>
+      <div id="logged_in" style="display: none;">
+        You are logged in as <b><span id="logged_in_name"></span></b>
+        <br><br>
+      </div>
     </div>
   </body>
 </html>
