@@ -52,13 +52,6 @@
       }
     });
   </script>
-  <script>
-    loadCrossword = function(url) {
-      var xhttp = new XMLHttpRequest();
-      xhttp.open("GET", url, true);
-      xhttp.send();
-    }
-  </script>
   <body>
     <div>
       Welcome to cw-mungo!
@@ -68,7 +61,7 @@
       Recently uploaded:
       <br>
       {% for recent in recents %}
-      <a id="{{recent['date']}}" href="javascript:loadCrossword('{{recent['url']}}')"></a>
+      <a id="{{recent['date']}}" href="{{recent['url']}}"></a>
       <script type="text/javascript">
         stamp_string = "{{recent['date']}}";
         document.getElementById(stamp_string).innerHTML = to_local_time_string(stamp_string);
