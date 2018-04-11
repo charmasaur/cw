@@ -18,18 +18,8 @@
     }
   </script>
   <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+  <script type="text/javascript" src="/js/init_firebase.js"></script>
   <script>
-    // Initialize Firebase
-    var config = {
-      apiKey: "AIzaSyAOJxCdSmDsKkqPQUJoUs0fJSJ_fiAdD0c",
-      authDomain: "cw-mungo.firebaseapp.com",
-      databaseURL: "https://cw-mungo.firebaseio.com",
-      projectId: "cw-mungo",
-      storageBucket: "cw-mungo.appspot.com",
-      messagingSenderId: "127965826478"
-    };
-    firebase.initializeApp(config);
-
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         // Hide the login button.
@@ -45,7 +35,6 @@
         document.getElementById("logged_in").style.display = 'none';
       }
     });
-
   </script>
   <body>
     <div>

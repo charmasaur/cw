@@ -8,17 +8,8 @@
     <div id="message">Log in to access saved crosswords! (or <a href="/">don't</a>)</div>
     <div id="firebaseui-auth-container"></div>
   </body>
+  <script type="text/javascript" src="/js/init_firebase.js"></script>
   <script>
-    // Initialize Firebase
-    var config = {
-      apiKey: "AIzaSyAOJxCdSmDsKkqPQUJoUs0fJSJ_fiAdD0c",
-      authDomain: "cw-mungo.firebaseapp.com",
-      databaseURL: "https://cw-mungo.firebaseio.com",
-      projectId: "cw-mungo",
-      storageBucket: "cw-mungo.appspot.com",
-      messagingSenderId: "127965826478"
-    };
-    firebase.initializeApp(config);
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         console.log("hello: " + user.displayName);
