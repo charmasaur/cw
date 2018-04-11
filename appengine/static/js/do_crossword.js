@@ -252,6 +252,8 @@ function init_cw(file) {
   init_labels();
 }
 
+// ------------------- storage/sync related stuff --------------------
+
 function get_item(name) {
   return localStorage.getItem(name);
 }
@@ -297,34 +299,60 @@ function save_user_input() {
 }
 
 function init_user_input() {
-  if (!is_storage_available()) {
-    console.log("Storage not available");
-    return;
-  }
+  // We start by checking whether the user is signed in and fetching any associated data. Then we
+  // compare what's in the local storage with what we received, and use whichever is most recent.
+  //
+  // TODO: It'd be nice to improve that. The server should know the UID when preparing this page,
+  // so we should be able to get an initial set of data straight away. Or maybe that isn't
+  // possible...
+  get_local_saved_state = function() {
+    if (!is_storage_available()) {
+      console.log("Storage not available");
+      return null;
+    }
 
-  old_cache_key = get_item("cache_key");
+    old_cache_key = get_item("cache_key");
 
-  // no more to do if the keys are different. don't clear anything yet though, in case the user
-  // didn't actually want this crossword and is just here temporarily
-  if (old_cache_key != cache_key) {
-    console.log("Different keys, not loading saved data");
-    return;
-  }
+    // no more to do if the keys are different. don't clear anything yet though, in case the user
+    // didn't actually want this crossword and is just here temporarily
+    if (old_cache_key != cache_key) {
+      console.log("Different keys, not loading saved data");
+      return null;
+    }
 
-  old_user_input = get_item("user_input");
+    old_user_input = get_item("user_input");
 
-  if (!old_user_input) {
-    console.log("Old input missing, not loading saved data");
-    return;
-  }
+    if (!old_user_input) {
+      console.log("Old input missing, not loading saved data");
+      return null;
+    }
 
-  vals = old_user_input.split("|");
-  if (vals.length != width * height + 1) {
-    console.log("Wrong number of saved values, not loading saved data");
-    return;
+    vals = old_user_input.split("|");
+    if (vals.length != width * height + 1) {
+      console.log("Wrong number of saved values, not loading saved data");
+      return null;
+    }
+    return vals;
+  };
+
+  // TODO: This should be async.
+  get_remote_saved_state = function() {
+    // TODO: Implement this.
+    return null;
   }
 
   console.log("Loading input");
+  remote_vals = get_remote_saved_state();
+  if (remote_vals == null) {
+    vals = get_local_saved_state();
+  }
+  if (vals == null) {
+    console.log("No saved data");
+    return;
+  }
+  // TODO: If we loaded data remotely, should we persist it to local storage here? Similarly, if we
+  // couldn't load any from the server but we did from local then should we sync here? Think the
+  // simplest answer to both those questions is "yes".
   for (var r = 0; r < height; r++) {
     for (var c = 0; c < width; c++) {
       cell_letter[r][c].nodeValue = vals[r * width + c];

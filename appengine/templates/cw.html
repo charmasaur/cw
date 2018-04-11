@@ -25,10 +25,13 @@
     var cw_data = {{cw_data|tojson}};
     var cache_key = {{cache_key|tojson}};
   </script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+  <script type="text/javascript" src="/js/init_firebase.js"></script>
   <script type="text/javascript" src="/js/do_crossword.js"></script>
   </head>
   <body>
     <div name="status">{{message}}</div>
+    <div name="sync_status"></div>
     <div name="table"></div>
     <div name="rest">
       <br>
