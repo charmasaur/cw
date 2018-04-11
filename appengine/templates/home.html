@@ -26,15 +26,38 @@
         // TODO: Replace with a log out button.
         document.getElementById("logged_in").style.display = 'block';
         document.getElementById("logged_in_name").innerHTML = user.displayName;
+        console.log("uid: " + user.uid);
         // Get the ID token, and send it to the server to update what we show. Should we show a
         // spinner or something?
         user.getIdToken().then(function(idToken) {
-          console.log("token: " + idToken);
+          console.log("ID token: " + idToken);
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function() {
+            if (this.readyState != 4) {
+              return;
+            }
+            if (this.status == 200) {
+              console.log(xhttp.responseText);
+              return;
+            }
+            console.log("Failed: " + this.status);
+          };
+          xhttp.open("GET", "/get_uid", true);
+          xhttp.setRequestHeader('Authorization', 'Bearer ' + idToken);
+          xhttp.send();
         });
+        console.log(user);
       } else {
         document.getElementById("logged_in").style.display = 'none';
       }
     });
+  </script>
+  <script>
+    loadCrossword = function(url) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.open("GET", url, true);
+      xhttp.send();
+    }
   </script>
   <body>
     <div>
@@ -45,7 +68,7 @@
       Recently uploaded:
       <br>
       {% for recent in recents %}
-      <a id="{{recent['date']}}" href="{{recent['url']}}"></a>
+      <a id="{{recent['date']}}" href="javascript:loadCrossword('{{recent['url']}}')"></a>
       <script type="text/javascript">
         stamp_string = "{{recent['date']}}";
         document.getElementById(stamp_string).innerHTML = to_local_time_string(stamp_string);

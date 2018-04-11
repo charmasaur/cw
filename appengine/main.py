@@ -1,11 +1,16 @@
 from flask import Flask, redirect, request, render_template, url_for
 from google.appengine.api import images, urlfetch
+import google.oauth2.id_token
+import google.auth.transport.requests
 import base64
 import datetime
 import hashlib
 import json
+import requests_toolbelt.adapters.appengine
 
 import image_cache
+
+requests_toolbelt.adapters.appengine.monkeypatch()
 
 app = Flask(__name__)
 
@@ -126,6 +131,15 @@ def delete():
     return render_template(
             "delete.html",
             msg=msg)
+
+@app.route('/get_uid', methods=['GET'])
+def get_uid():
+    id_token = request.headers['Authorization'].split(' ').pop()
+    http_request = google.auth.transport.requests.Request()
+    claims = google.oauth2.id_token.verify_firebase_token(id_token, http_request)
+    if not claims:
+        return "Unauthorized", 401
+    return claims['sub']
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()
