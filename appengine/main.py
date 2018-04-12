@@ -9,6 +9,7 @@ import json
 import requests_toolbelt.adapters.appengine
 
 import image_cache
+import user_saves
 
 requests_toolbelt.adapters.appengine.monkeypatch()
 
@@ -139,6 +140,41 @@ def get_uid():
     if not uid:
         return "Unauthorized", 401
     return uid
+
+@app.route('/get_cw_data', methods=['GET'])
+def get_cw_data():
+    args = request.args.to_dict()
+    if not 'cw_id' in args:
+        return "No ID specified", 400
+    cw_id = args['cw_id']
+
+    uid = _get_uid(request.headers['Authorization'].split(' ').pop())
+    if not uid:
+        return "Unauthorized", 401
+    data = user_saves.get(uid, cw_id)
+    if not data:
+        return ""
+    print(data)
+    return data
+
+@app.route('/set_cw_data', methods=['PUT'])
+def set_cw_data():
+    args = request.args.to_dict()
+    if not 'cw_id' in args:
+        return "No ID specified", 400
+    cw_id = args['cw_id']
+    if not 'cw_data' in args:
+        return "No data specified", 400
+    cw_data = args['cw_data']
+
+    print(cw_data)
+
+    uid = _get_uid(request.headers['Authorization'].split(' ').pop())
+    if not uid:
+        return "Unauthorized", 401
+
+    user_saves.put(uid, cw_id, cw_data)
+    return ""
 
 # TODO: This could probably take a request object instead, and pull the info out of the header
 # itself
