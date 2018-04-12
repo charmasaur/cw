@@ -135,11 +135,16 @@ def delete():
 
 @app.route('/get_uid', methods=['GET'])
 def get_uid():
-    id_token = request.headers['Authorization'].split(' ').pop()
+    uid = _get_uid(request.headers['Authorization'].split(' ').pop())
+    if not uid:
+        return "Unauthorized", 401
+    return uid
+
+def _get_uid(id_token):
     http_request = google.auth.transport.requests.Request()
     claims = google.oauth2.id_token.verify_firebase_token(id_token, http_request)
     if not claims:
-        return "Unauthorized", 401
+        return None
     return claims['sub']
 
 def get_cache_key(bdata, data):
