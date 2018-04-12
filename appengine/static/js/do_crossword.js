@@ -5,6 +5,7 @@ var cell_letter;
 var cell_label;
 var is_cell_blocked;
 var entries;
+var sync_state;
 
 function Entry(index, is_across, start_r, start_c, len) {
   this.index = index;
@@ -277,25 +278,77 @@ function is_storage_available() {
 }
 
 function save_user_input() {
-  if (!is_storage_available()) {
-    console.log("Storage not available");
-    return;
-  }
-
-  // remove the old data
-  remove_item("cache_key");
-  remove_item("user_input");
-
-  val = "";
+  // First kick off a request to save it remotely, and then while that's in process save it
+  // locally.
+  var state = "";
   for (var r = 0; r < height; r++) {
     for (var c = 0; c < width; c++) {
-      val += cell_letter[r][c].nodeValue + "|";
+      state += cell_letter[r][c].nodeValue + "_";
     }
   }
 
-  console.log("Saving input");
-  put_item("cache_key", cache_key);
-  put_item("user_input", val);
+  set_local_saved_state = function(val) {
+    if (!is_storage_available()) {
+      console.log("Storage not available");
+      return;
+    }
+
+    // remove the old data
+    remove_item("cache_key");
+    remove_item("user_input");
+
+    console.log("Saving input");
+    put_item("cache_key", cache_key);
+    put_item("user_input", val);
+  };
+
+  set_remote_saved_state = function(val) {
+    setSyncState("Getting login status...");
+    get_user_id_token(function(idToken) {
+      if (!idToken) {
+        setSyncState("Saved locally (not logged in)");
+        return;
+      }
+
+      setSyncState("Saving...");
+      var xhttp = new XMLHttpRequest();
+      // Set data.
+      xhttp.onreadystatechange = function() {
+        if (this.readyState != 4) {
+          return;
+        }
+        if (this.status != 200) {
+          setSyncState("Saved locally (failed to save remotely)");
+          return;
+        }
+        setSyncState("Saved");
+      };
+      xhttp.open("PUT", "/set_cw_data?cw_id=" + cw_id + "&cw_data=" + val, true);
+      xhttp.setRequestHeader('Authorization', 'Bearer ' + idToken);
+      xhttp.send();
+    });
+  };
+
+  set_remote_saved_state(state);
+  set_local_saved_state(state);
+}
+
+function get_user_id_token(callback) {
+  // Get auth state.
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) {
+      console.log("User not logged in");
+      callback(null);
+      return;
+    }
+    console.log("User logged in, getting ID token");
+    // Get ID token.
+    user.getIdToken().then(function(idToken) {
+      console.log("Got ID token");
+      callback(idToken);
+    });
+    // TODO: What if that never returns?
+  });
 }
 
 function init_user_input() {
@@ -305,13 +358,14 @@ function init_user_input() {
   // TODO: It'd be nice to improve that. The server should know the UID when preparing this page,
   // so we should be able to get an initial set of data straight away. Or maybe that isn't
   // possible...
+  // TODO: We don't do that yet, we just use remote if it's there and local otherwise.
   get_local_saved_state = function() {
     if (!is_storage_available()) {
       console.log("Storage not available");
       return null;
     }
 
-    old_cache_key = get_item("cache_key");
+    var old_cache_key = get_item("cache_key");
 
     // no more to do if the keys are different. don't clear anything yet though, in case the user
     // didn't actually want this crossword and is just here temporarily
@@ -320,44 +374,81 @@ function init_user_input() {
       return null;
     }
 
-    old_user_input = get_item("user_input");
+    var old_user_input = get_item("user_input");
 
     if (!old_user_input) {
       console.log("Old input missing, not loading saved data");
       return null;
     }
 
-    vals = old_user_input.split("|");
-    if (vals.length != width * height + 1) {
-      console.log("Wrong number of saved values, not loading saved data");
-      return null;
-    }
-    return vals;
+    // For compatibility with the old storage format, which used | separators.
+    return old_user_input.replace("|", "_");
   };
 
-  // TODO: This should be async.
-  get_remote_saved_state = function() {
-    // TODO: Implement this.
-    return null;
+  get_remote_saved_state = function(callback) {
+    setSyncState("Getting login status");
+    get_user_id_token(function(idToken) {
+      if (!idToken) {
+        callback(null);
+        return;
+      }
+
+      setSyncState("Loading data");
+      var xhttp = new XMLHttpRequest();
+      // Get data.
+      xhttp.onreadystatechange = function() {
+        if (this.readyState != 4) {
+          return;
+        }
+        if (this.status != 200) {
+          callback(null);
+          return;
+        }
+        callback(xhttp.responseText);
+      };
+      // TODO: Is there a legit way to set query params?
+      xhttp.open("GET", "/get_cw_data?cw_id=" + cw_id, true);
+      xhttp.setRequestHeader('Authorization', 'Bearer ' + idToken);
+      xhttp.send();
+    });
   }
 
-  console.log("Loading input");
-  remote_vals = get_remote_saved_state();
-  if (remote_vals == null) {
-    vals = get_local_saved_state();
-  }
-  if (vals == null) {
-    console.log("No saved data");
-    return;
-  }
-  // TODO: If we loaded data remotely, should we persist it to local storage here? Similarly, if we
-  // couldn't load any from the server but we did from local then should we sync here? Think the
-  // simplest answer to both those questions is "yes".
-  for (var r = 0; r < height; r++) {
-    for (var c = 0; c < width; c++) {
-      cell_letter[r][c].nodeValue = vals[r * width + c];
+  apply_saved_state = function(data) {
+    setSyncState("Loaded");
+    if (data == null) {
+      console.log("No saved data");
+      return;
     }
-  }
+
+    var vals = data.split("_");
+    if (vals.length != width * height + 1) {
+      console.log("Wrong number of saved values, not loading saved data");
+      return;
+    }
+
+    // TODO: If we loaded data remotely, should we persist it to local storage here? Similarly, if we
+    // couldn't load any from the server but we did from local then should we sync here? Think the
+    // simplest answer to both those questions is "yes".
+    for (var r = 0; r < height; r++) {
+      for (var c = 0; c < width; c++) {
+        cell_letter[r][c].nodeValue = vals[r * width + c];
+      }
+    }
+  };
+
+  get_remote_saved_state(function(vals) {
+    console.log(vals);
+    if (!vals) {
+      console.log("Checking local cache");
+      vals = get_local_saved_state();
+    }
+    apply_saved_state(vals);
+  });
+}
+
+function setSyncState(message) {
+  sync_state = message;
+  document.getElementsByName("sync_status")[0].innerHTML = sync_state;
 }
 
 function onClearSavedDataSubmit() {
