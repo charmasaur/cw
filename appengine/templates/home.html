@@ -29,6 +29,8 @@
         console.log("uid: " + user.uid);
         // Get the ID token, and send it to the server to update what we show. Should we show a
         // spinner or something?
+        // TODO: Actually, probably just delete this for now. Only useful if we have data to show
+        // on the home page.
         user.getIdToken().then(function(idToken) {
           console.log("ID token: " + idToken);
           var xhttp = new XMLHttpRequest();
