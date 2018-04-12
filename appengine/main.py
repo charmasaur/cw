@@ -140,6 +140,8 @@ def get_uid():
         return "Unauthorized", 401
     return uid
 
+# TODO: This could probably take a request object instead, and pull the info out of the header
+# itself
 def _get_uid(id_token):
     http_request = google.auth.transport.requests.Request()
     claims = google.oauth2.id_token.verify_firebase_token(id_token, http_request)
