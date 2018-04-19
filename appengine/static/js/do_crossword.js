@@ -481,13 +481,12 @@ function init_user_input() {
     }
   };
 
+  apply_saved_state(get_local_saved_state());
   get_remote_saved_state(function(vals) {
     console.log(vals);
-    if (!vals) {
-      console.log("Checking local cache");
-      vals = get_local_saved_state();
+    if (vals) {
+      apply_saved_state(vals);
     }
-    apply_saved_state(vals);
   });
 }
 
