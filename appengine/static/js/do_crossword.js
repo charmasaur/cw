@@ -278,15 +278,6 @@ function is_storage_available() {
 }
 
 function save_user_input() {
-  // First kick off a request to save it remotely, and then while that's in process save it
-  // locally.
-  var state = "";
-  for (var r = 0; r < height; r++) {
-    for (var c = 0; c < width; c++) {
-      state += cell_letter[r][c].nodeValue + "_";
-    }
-  }
-
   set_local_saved_state = function(val) {
     if (!is_storage_available()) {
       console.log("Storage not available");
@@ -329,8 +320,20 @@ function save_user_input() {
     });
   };
 
-  set_remote_saved_state(state);
-  set_local_saved_state(state);
+  var state = {
+    "width": width,
+    "height": height,
+    "entries": [],
+  }
+  for (var r = 0; r < height; r++) {
+    for (var c = 0; c < width; c++) {
+      state["entries"].push(cell_letter[r][c].nodeValue)
+    }
+  }
+
+  state_string = JSON.stringify(state);
+  set_remote_saved_state(state_string);
+  set_local_saved_state(state_string);
 }
 
 function get_user_id_token(callback) {
@@ -381,8 +384,7 @@ function init_user_input() {
       return null;
     }
 
-    // For compatibility with the old storage format, which used | separators.
-    return old_user_input.replace("|", "_");
+    return old_user_input;
   };
 
   get_remote_saved_state = function(callback) {
@@ -420,9 +422,36 @@ function init_user_input() {
       return;
     }
 
-    var vals = data.split("_");
-    if (vals.length != width * height + 1) {
-      console.log("Wrong number of saved values, not loading saved data");
+    // Need to pull out a list of width*height vals. There's some compatibility to deal with.
+    var vals = null;
+    if (data.split("|").length == width * height + 1) {
+      // Original.
+      vals = data.split("|");
+    } else if (data.split("_").length == width * height + 1) {
+      // Intermediate.
+      vals = data.split("_");
+    } else {
+      // JSON?
+      var jdata = null;
+      try {
+        jdata = JSON.parse(data);
+      } catch (e) {
+        console.log("Failed to parse")
+        jdata = null;
+      }
+      if (jdata
+          && "width" in jdata
+          && "height" in jdata
+          && "entries" in jdata
+          && jdata["width"] == width
+          && jdata["height"] == height
+          && jdata["entries"].length == width * height) {
+        vals = jdata["entries"];
+      }
+    }
+
+    if (!vals) {
+      console.log("Invalid saved data");
       return;
     }
 
