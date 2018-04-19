@@ -323,9 +323,9 @@ function save_user_input() {
         }
         setSyncState("Saved");
       };
-      xhttp.open("PUT", "/set_cw_data?cw_id=" + cw_id + "&cw_data=" + val, true);
+      xhttp.open("POST", "/set_cw_data?cw_id=" + cw_id, true);
       xhttp.setRequestHeader('Authorization', 'Bearer ' + idToken);
-      xhttp.send();
+      xhttp.send(val);
     });
   };
 

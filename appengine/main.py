@@ -157,15 +157,15 @@ def get_cw_data():
     print(data)
     return data
 
-@app.route('/set_cw_data', methods=['PUT'])
+@app.route('/set_cw_data', methods=['POST'])
 def set_cw_data():
     args = request.args.to_dict()
     if not 'cw_id' in args:
         return "No ID specified", 400
     cw_id = args['cw_id']
-    if not 'cw_data' in args:
+    cw_data = request.data
+    if not cw_data:
         return "No data specified", 400
-    cw_data = args['cw_data']
 
     print(cw_data)
 
