@@ -327,7 +327,11 @@ function save_user_input() {
   }
   for (var r = 0; r < height; r++) {
     for (var c = 0; c < width; c++) {
-      state["entries"].push(cell_letter[r][c].nodeValue)
+      var entry = {}
+      if (cell_letter[r][c].nodeValue) {
+        entry["value"] = cell_letter[r][c].nodeValue;
+      }
+      state["entries"].push(entry);
     }
   }
 
@@ -415,43 +419,55 @@ function init_user_input() {
     });
   }
 
-  apply_saved_state = function(data) {
-    setSyncState("Loaded");
+  parse_data = function(data) {
     if (data == null) {
-      console.log("No saved data");
-      return;
+      console.log("No data");
+      return null;
     }
 
     // Need to pull out a list of width*height vals. There's some compatibility to deal with.
-    var vals = null;
     if (data.split("|").length == width * height + 1) {
       // Original.
-      vals = data.split("|");
-    } else if (data.split("_").length == width * height + 1) {
+      return data.split("|");
+    }
+    if (data.split("_").length == width * height + 1) {
       // Intermediate.
-      vals = data.split("_");
-    } else {
-      // JSON?
-      var jdata = null;
-      try {
-        jdata = JSON.parse(data);
-      } catch (e) {
-        console.log("Failed to parse")
-        jdata = null;
-      }
-      if (jdata
-          && "width" in jdata
-          && "height" in jdata
-          && "entries" in jdata
-          && jdata["width"] == width
-          && jdata["height"] == height
-          && jdata["entries"].length == width * height) {
-        vals = jdata["entries"];
-      }
+      return data.split("_");
     }
 
+    // JSON?
+    var jdata;
+    try {
+      jdata = JSON.parse(data);
+    } catch (e) {
+      console.log("Failed to parse JSON")
+      return null;
+    }
+    if ("width" in jdata
+        && "height" in jdata
+        && "entries" in jdata
+        && jdata["width"] == width
+        && jdata["height"] == height
+        && jdata["entries"].length == width * height) {
+      var vals = []
+      for (var i = 0; i < width * height; i++) {
+        entry = jdata["entries"][i];
+        if ("value" in entry) {
+          vals.push(entry["value"]);
+        } else {
+          vals.push("");
+        }
+      }
+      return vals;
+    }
+    return null;
+  };
+
+  apply_saved_state = function(data) {
+    setSyncState("Loaded");
+    var vals = parse_data(data);
     if (!vals) {
-      console.log("Invalid saved data");
+      console.log("Could not parse data");
       return;
     }
 
