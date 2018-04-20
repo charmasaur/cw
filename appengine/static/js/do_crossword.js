@@ -428,11 +428,7 @@ function init_user_input() {
     // Need to pull out a list of width*height vals. There's some compatibility to deal with.
     if (data.split("|").length == width * height + 1) {
       // Original.
-      return data.split("|");
-    }
-    if (data.split("_").length == width * height + 1) {
-      // Intermediate.
-      return data.split("_");
+      return data.split("|").slice(0, -1);
     }
 
     // JSON?
