@@ -396,6 +396,7 @@ function init_user_input() {
     setSyncState("Getting login status");
     get_user_id_token(function(idToken) {
       if (!idToken) {
+        setSyncState("Not logged in");
         callback(null);
         return;
       }
