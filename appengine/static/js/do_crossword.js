@@ -492,12 +492,12 @@ function setSyncState(message) {
 }
 
 function onClearSavedDataSubmit() {
-  if (!is_storage_available()) {
-    console.log("Storage not available");
-    return;
+  for (var r = 0; r < height; r++) {
+    for (var c = 0; c < width; c++) {
+      cell_letter[r][c].nodeValue = "";
+    }
   }
-  console.log("Clearing saved data");
-  localStorage.clear();
+  save_user_input();
   return false;
 }
 
