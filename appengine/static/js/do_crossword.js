@@ -365,7 +365,8 @@ function init_user_input() {
   // TODO: It'd be nice to improve that. The server should know the UID when preparing this page,
   // so we should be able to get an initial set of data straight away. Or maybe that isn't
   // possible...
-  // TODO: We don't do that yet, we just use remote if it's there and local otherwise.
+  // TODO: We don't do that yet, we just use local and then override it with remote if remote
+  // works.
   get_local_saved_state = function() {
     if (!is_storage_available()) {
       console.log("Storage not available");
