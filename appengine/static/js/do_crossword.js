@@ -503,6 +503,9 @@ function setSyncState(message) {
 }
 
 function onClearSavedDataSubmit() {
+  if (!confirm("Are you sure you want to clear your saved data?")) {
+    return false;
+  }
   for (var r = 0; r < height; r++) {
     for (var c = 0; c < width; c++) {
       cell_letter[r][c].nodeValue = "";
