@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+  </head>
+  <body>
+    <div id="message">Logging out...</div>
+  </body>
+  <script type="text/javascript" src="/js/init_firebase.js"></script>
+  <script>
+    firebase.auth().signOut().then(function() {
+      document.getElementById("message").innerHTML = "Logged out, return to <a href=\"/\">home</a>";
+    }, function() {
+      document.getElementById("message").innerHTML = "Error logging out, return to <a href=\"/\">home</a>";
+    });
+  </script>
+</html>

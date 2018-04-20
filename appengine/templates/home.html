@@ -24,9 +24,11 @@
       if (user) {
         // Hide the login button.
         // TODO: Replace with a log out button.
+        document.getElementById("logged_out").style.display = 'none';
         document.getElementById("logged_in").style.display = 'block';
         document.getElementById("logged_in_name").innerHTML = user.displayName;
       } else {
+        document.getElementById("logged_out").style.display = 'block';
         document.getElementById("logged_in").style.display = 'none';
       }
     });
@@ -53,12 +55,17 @@
         <input type="submit" value="Preview"/>
       </form>
       <br>
-      <form action=login method=get >
-        <input type="submit" value="Log in (new!!!)"/>
-      </form>
+      <div id="logged_out" style="display: none;">
+        <form action=login method=get >
+          <input type="submit" value="Log in (new!!!)"/>
+        </form>
       <br>
+      </div>
       <div id="logged_in" style="display: none;">
         You are logged in as <b><span id="logged_in_name"></span></b>
+        <form action=logout method=get >
+          <input type="submit" value="Log out"/>
+        </form>
         <br><br>
       </div>
     </div>

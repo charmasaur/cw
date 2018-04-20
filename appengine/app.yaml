@@ -13,6 +13,9 @@ handlers:
 - url: /login
   static_files: static/login.html
   upload: static/login.html
+- url: /logout
+  static_files: static/logout.html
+  upload: static/logout.html
 
 - url: /js
   static_dir: static/js
