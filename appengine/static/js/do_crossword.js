@@ -286,10 +286,11 @@ function save_user_input() {
 
     // remove the old data
     remove_item("cache_key");
+    remove_item("cw_id");
     remove_item("user_input");
 
     console.log("Saving input");
-    put_item("cache_key", cache_key);
+    put_item("cw_id", cw_id);
     put_item("user_input", val);
   };
 
@@ -373,12 +374,20 @@ function init_user_input() {
       return null;
     }
 
-    var old_cache_key = get_item("cache_key");
+    var old_cw_id = get_item("cw_id");
 
     // no more to do if the keys are different. don't clear anything yet though, in case the user
     // didn't actually want this crossword and is just here temporarily
-    if (old_cache_key != cache_key) {
-      console.log("Different keys, not loading saved data");
+
+    if (!old_cw_id) {
+      // This was saved before migrating from cache keys to CW IDs. Check the cache keys.
+      if (get_item("cache_key") != cache_key) {
+        console.log("Different keys, not loading saved data");
+        return null;
+      }
+      // Otherwise the cache keys match, so we're good.
+    } else if (old_cw_id != cw_id) {
+      console.log("Different IDs, not loading saved data");
       return null;
     }
 
