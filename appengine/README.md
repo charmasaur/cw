@@ -19,4 +19,4 @@ var config = {
 };
 firebase.initializeApp(config);
 ~~~~
-Also, in the app engine console make sure the API key is restricted to HTTP referrers "localhost" and "<project>.firebaseapp.com". In the firebase console make sure "<project>.firebaseapp.com", "<project>.appspot.com" and "localhost" are authorized domains in the "Authentication -> Sign-in method" section.
+Also, in the app engine console make sure the API key is restricted to HTTP referrers "localhost" and "<project>.firebaseapp.com", and the only API in the API restrictions is the "Identity Toolkit API". In the firebase console make sure "<project>.firebaseapp.com", "<project>.appspot.com" and "localhost" are authorized domains in the "Authentication -> Sign-in method" section.
