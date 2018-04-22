@@ -34,11 +34,17 @@ function is_part_of_clue(r, c, rd, cd) {
 }
 
 function set_conflict(r, c) {
+  if (is_conflict[r][c]) {
+    return;
+  }
   is_conflict[r][c] = true;
   cell[r][c].bgColor = 'red';
 }
 
 function clear_conflict(r, c) {
+  if (!is_conflict[r][c]) {
+    return;
+  }
   is_conflict[r][c] = false;
   cell[r][c].bgColor = 'white';
 }
@@ -537,6 +543,7 @@ function onClearSavedDataSubmit() {
   for (var r = 0; r < height; r++) {
     for (var c = 0; c < width; c++) {
       cell_letter[r][c].nodeValue = "";
+      clear_conflict(r, c);
     }
   }
   save_user_input();
