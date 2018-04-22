@@ -497,19 +497,19 @@ function init_user_input() {
         var idx = r * width + c;
         // There's a conflict here if there was already a conflict, if what we're loading has a
         // conflict, or if what we're loading disagrees with what's currently there.
-        var is_conflict = is_conflict[r][c];
+        var new_is_conflict = is_conflict[r][c];
         if ("conflict" in jdata["entries"][idx] && jdata["entries"][idx]["conflict"]) {
-          is_conflict = true;
+          new_is_conflict = true;
         }
         if ("value" in jdata["entries"][idx]) {
           var new_value = jdata["entries"][idx]["value"];
           var old_value = cell_letter[r][c].nodeValue;
           if (old_value != "" && old_value != new_value) {
-            is_conflict = true;
+            new_is_conflict = true;
           }
           cell_letter[r][c].nodeValue = new_value;
         }
-        if (is_conflict) {
+        if (new_is_conflict) {
           set_conflict(r, c);
         }
       }
