@@ -22,8 +22,6 @@
   <script>
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
-        // Hide the login button.
-        // TODO: Replace with a log out button.
         document.getElementById("logged_out").style.display = 'none';
         document.getElementById("logged_in").style.display = 'block';
         document.getElementById("logged_in_name").innerHTML = user.displayName;

@@ -56,7 +56,6 @@ def cw():
     # cache key used to decide whether or not to try to load user progress from local storage. this
     # should be a hash of bdata and data (that is, image data and semantic data), because we can't
     # be sure that if one is the same then the other is too.
-    # TODO: Why can't we just use cw_id?
     cache_key = get_cache_key(image_bdata, cw_data)
 
     return render_template(
