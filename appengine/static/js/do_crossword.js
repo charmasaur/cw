@@ -6,6 +6,7 @@ var cell_label;
 var is_cell_blocked;
 var entries;
 var sync_state;
+var is_conflict;
 
 function Entry(index, is_across, start_r, start_c, len) {
   this.index = index;
@@ -30,6 +31,16 @@ function is_part_of_clue(r, c, rd, cd) {
       || (rd == 1 && r + rd < height && cell_letter[r+rd][c].nodeValue != "")
       || (cd == 1 && c - cd >= 0 && cell_letter[r][c-cd].nodeValue != "")
       || (cd == 1 && c + cd < width && cell_letter[r][c+cd].nodeValue != "");
+}
+
+function set_conflict(r, c) {
+  is_conflict[r][c] = true;
+  cell[r][c].bgColor = 'red';
+}
+
+function clear_conflict(r, c) {
+  is_conflict[r][c] = false;
+  cell[r][c].bgColor = 'white';
 }
 
 function onSubmit() {
@@ -59,11 +70,14 @@ function onSubmit() {
   for (var i = 0; i < text.length; i++) {
     r = entry.start_r + i * rdiff;
     c = entry.start_c + i * cdiff;
-    if (cell_letter[r][c].nodeValue != "" && cell_letter[r][c].nodeValue != text[i]
-        && is_part_of_clue(r, c, cdiff, rdiff)) {
-      alert("Conflict: " + cell_letter[r][c].nodeValue + " vs " + text[i]);
+    if (cell_letter[r][c].nodeValue == text[i]) {
+      // If there was a conflict then it is now resolved.
+      clear_conflict(r, c);
+    } else if (cell_letter[r][c].nodeValue != "" && is_part_of_clue(r, c, cdiff, rdiff)) {
+      // The new text disagrees with the perpendicular clue, so we now have a conflict.
+      set_conflict(r, c);
     }
-    cell_letter[entry.start_r + i * rdiff][entry.start_c + i * cdiff].nodeValue = text[i];
+    cell_letter[r][c].nodeValue = text[i];
   }
 
   document.getElementsByName("text")[0].value = "";
@@ -217,15 +231,18 @@ function init_cw(file) {
   cell = new Array(height);
   cell_letter = new Array(height);
   cell_label = new Array(height);
+  is_conflict = new Array(height);
   for (var r = 0; r < height; r++) {
     var row = document.createElement("tr");
     cell[r] = new Array(width);
     cell_letter[r] = new Array(width);
     cell_label[r] = new Array(width);
+    is_conflict[r] = new Array(width);
     for (var c = 0; c < width; c++) {
       cell[r][c] = document.createElement("td");
       cell_letter[r][c] = document.createTextNode("");
       cell_label[r][c] = document.createTextNode("");
+      is_conflict[r][c] = false;
 
       container = document.createElement("div");
       container.className = "cell_container";
@@ -331,6 +348,9 @@ function save_user_input() {
       var entry = {}
       if (cell_letter[r][c].nodeValue) {
         entry["value"] = cell_letter[r][c].nodeValue;
+      }
+      if (is_conflict[r][c]) {
+        entry["conflict"] = is_conflict[r][c];
       }
       state["entries"].push(entry);
     }
@@ -456,24 +476,15 @@ function init_user_input() {
         && jdata["width"] == width
         && jdata["height"] == height
         && jdata["entries"].length == width * height) {
-      var vals = []
-      for (var i = 0; i < width * height; i++) {
-        entry = jdata["entries"][i];
-        if ("value" in entry) {
-          vals.push(entry["value"]);
-        } else {
-          vals.push("");
-        }
-      }
-      return vals;
+      return jdata;
     }
     return null;
   };
 
   apply_saved_state = function(data) {
     setSyncState("Loaded");
-    var vals = parse_data(data);
-    if (!vals) {
+    var jdata = parse_data(data);
+    if (!jdata) {
       console.log("Could not parse data");
       return;
     }
@@ -483,7 +494,24 @@ function init_user_input() {
     // simplest answer to both those questions is "yes".
     for (var r = 0; r < height; r++) {
       for (var c = 0; c < width; c++) {
-        cell_letter[r][c].nodeValue = vals[r * width + c];
+        var idx = r * width + c;
+        // There's a conflict here if there was already a conflict, if what we're loading has a
+        // conflict, or if what we're loading disagrees with what's currently there.
+        var is_conflict = is_conflict[r][c];
+        if ("conflict" in jdata["entries"][idx] && jdata["entries"][idx]["conflict"]) {
+          is_conflict = true;
+        }
+        if ("value" in jdata["entries"][idx]) {
+          var new_value = jdata["entries"][idx]["value"];
+          var old_value = cell_letter[r][c].nodeValue;
+          if (old_value != "" && old_value != new_value) {
+            is_conflict = true;
+          }
+          cell_letter[r][c].nodeValue = new_value;
+        }
+        if (is_conflict) {
+          set_conflict(r, c);
+        }
       }
     }
   };
