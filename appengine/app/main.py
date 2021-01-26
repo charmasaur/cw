@@ -5,14 +5,12 @@ import base64
 import datetime
 import hashlib
 import json
-import requests_toolbelt.adapters.appengine
 import wand.image as wi
 
 import app.image_cache as image_cache
 import app.user_saves as user_saves
 import app.extractor as extractor
 
-requests_toolbelt.adapters.appengine.monkeypatch()
 
 from app.app import app
 
