@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import requests_toolbelt.adapters.appengine
+import wand.image as wi
 
 import app.image_cache as image_cache
 import app.user_saves as user_saves
@@ -88,15 +89,8 @@ def preview():
     if not image_ext or not image_data:
         return redirect('/')
     if not (image_ext == "jpg" or image_ext == "jpeg"):
-        urlfetch.set_default_fetch_deadline(30)
-        result = json.loads(urlfetch.fetch(
-                url="http://converter.cw-mungo.appspot.com/convert",
-                payload=base64.b64encode(image_data),
-                method=urlfetch.POST).content)
-        if not result or not "b64data" in result or not "ext" in result:
-            return redirect('/')
-        image_ext = result["ext"]
-        image_data = base64.b64decode(result["b64data"])
+        image_data = wi.Image(blob=image_data).convert("jpg").make_blob()
+        image_ext = "jpg"
 
     message = ""
     try:
