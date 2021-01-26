@@ -133,13 +133,6 @@ def delete():
             "delete.html",
             msg=msg)
 
-@app.route('/get_uid', methods=['GET'])
-def get_uid():
-    uid = _get_uid(request.headers['Authorization'].split(' ').pop())
-    if not uid:
-        return "Unauthorized", 401
-    return uid
-
 @app.route('/get_cw_data', methods=['GET'])
 def get_cw_data():
     args = request.args.to_dict()
