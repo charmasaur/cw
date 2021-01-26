@@ -1,4 +1,5 @@
 from google.appengine.ext import ndb
+# TODO
 
 class ImageDataItem(ndb.Model):
     bdata = ndb.StringProperty(indexed=False)
