@@ -1,5 +1,4 @@
 from flask import Flask, redirect, request, render_template, url_for
-from google.appengine.api import urlfetch
 import google.oauth2.id_token
 import google.auth.transport.requests
 import base64
@@ -11,6 +10,7 @@ import wand.image as wi
 
 import app.image_cache as image_cache
 import app.user_saves as user_saves
+import app.extractor as extractor
 
 requests_toolbelt.adapters.appengine.monkeypatch()
 
@@ -74,11 +74,7 @@ def go():
 
     image_bdata = base64.b64encode(image_data)
 
-    urlfetch.set_default_fetch_deadline(20)
-    cw_data = urlfetch.fetch(
-            url="http://extractor.cw-mungo.appspot.com/extract",
-            payload=image_bdata,
-            method=urlfetch.POST).content
+    cw_data = extractor.extract(image_bdata)
 
     msg = image_cache.put(image_bdata, image_ext, cw_data)
     return redirect('/cw?cw_id=' + msg)
