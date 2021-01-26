@@ -1,14 +1,39 @@
 from google.appengine.api import urlfetch
+import json
 
 def extract(image_bdata):
     """
     Given a base64-encoded image, extracts and returns the crossword grid.
     """
-    urlfetch.set_default_fetch_deadline(20)
-    return urlfetch.fetch(
-            url="http://extractor.cw-mungo.appspot.com/extract",
-            payload=image_bdata,
-            method=urlfetch.POST).content
+    image_bdata = request.get_data()
+
+    # if the data are already cached just use that, otherwise query the backend (caching the data
+    # if the query succeeds)
+    cw_data = data_cache.get(image_bdata)
+    if not cw_data:
+        success, cw_data = get_data_from_backend(image_bdata)
+        if success:
+            data_cache.put(image_bdata, cw_data)
+
+    return cw_data
+
+def get_data_from_backend(bdata):
+    urlfetch.set_default_fetch_deadline(15)
+    url, auth = grid_getter_config.get()
+    response = json.loads(urlfetch.fetch(
+            url=url,
+            payload='{"b64data":"' + bdata + '"}',
+            method=urlfetch.POST,
+            headers={'Content-Type': 'application/json', 'Authorization': auth}).content)
+
+    if not "result" in response:
+        return (False, "Backend request failed: " + json.dumps(response))
+
+    data = response["result"]
+    data = data.replace("|","\n")
+    data = data + "\n"
+    data = data + clue_getter.get_clues(data)
+    return (True, data)
 
 def get_label(d):
     if d == 0:
