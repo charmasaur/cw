@@ -8,12 +8,12 @@ import hashlib
 import json
 import requests_toolbelt.adapters.appengine
 
-import image_cache
-import user_saves
+import app.image_cache as image_cache
+import app.user_saves as user_saves
 
 requests_toolbelt.adapters.appengine.monkeypatch()
 
-app = Flask(__name__)
+from app.app import app
 
 def get_ext_and_data(request):
     ext = None
