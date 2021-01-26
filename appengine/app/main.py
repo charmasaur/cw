@@ -1,5 +1,5 @@
 from flask import Flask, redirect, request, render_template, url_for
-from google.appengine.api import images, urlfetch
+from google.appengine.api import urlfetch
 import google.oauth2.id_token
 import google.auth.transport.requests
 import base64
@@ -88,28 +88,26 @@ def preview():
     image_ext, image_data = get_ext_and_data(request)
     if not image_ext or not image_data:
         return redirect('/')
-    if not (image_ext == "jpg" or image_ext == "jpeg"):
-        image_data = wi.Image(blob=image_data).convert("jpg").make_blob()
-        image_ext = "jpg"
 
     message = ""
+    output_image_ext = 'jpg'
     try:
-        image_object = images.Image(image_data)
-        image_object.resize(width=1000, height=1000)
+        image_object = wi.Image(blob=image_data)
+        image_object.transform("1000x1000")
         if 'rotate_cw' in request.form:
             image_object.rotate(90);
         if 'rotate_ccw' in request.form:
             image_object.rotate(-90);
-        image_data = image_object.execute_transforms(output_encoding=images.JPEG)
+        output_image_data = image_object.convert(output_image_ext).make_blob()
     except:
         message = "Can't process image"
 
-    image_bdata = base64.b64encode(image_data)
+    output_image_bdata = base64.b64encode(output_image_data)
 
     return render_template(
             "preview.html",
-            image_bdata=image_bdata,
-            image_ext=image_ext,
+            image_bdata=output_image_bdata,
+            image_ext=output_image_ext,
             message=message)
 
 @app.route('/delete', methods=['GET'])
