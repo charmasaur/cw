@@ -1,7 +1,7 @@
 import json
 import os
 
-from google.appengine.api import urlfetch
+import requests
 
 def extract(image_bdata):
     """
@@ -21,11 +21,11 @@ def _get_url_and_auth():
 def get_data_from_backend(bdata):
     urlfetch.set_default_fetch_deadline(15)
     url, auth = _get_url_and_auth()
-    response = json.loads(urlfetch.fetch(
+    response = json.loads(
+        requests.post(
             url=url,
-            payload='{"b64data":"' + bdata + '"}',
-            method=urlfetch.POST,
-            headers={'Content-Type': 'application/json', 'Authorization': auth}).content)
+            json={"b64data": bdata},
+            headers={'Authorization': auth}).text)
 
     if not "result" in response:
         return (False, "Backend request failed: " + json.dumps(response))
