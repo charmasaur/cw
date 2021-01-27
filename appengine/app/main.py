@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, redirect, request, render_template, url_for
 import google.oauth2.id_token
 import google.auth.transport.requests
@@ -13,6 +15,9 @@ import app.extractor as extractor
 
 
 from app.app import app
+
+def _get_firebase_config():
+    return os.getenv("FIREBASE_CONFIG", "")
 
 def get_ext_and_data(request):
     ext = None
@@ -38,7 +43,8 @@ def home():
 
     return render_template(
             "home.html",
-            recents=recents)
+            recents=recents,
+            firebase_config=_get_firebase_config())
 
 @app.route('/cw', methods=['GET'])
 def cw():
@@ -62,7 +68,8 @@ def cw():
             image_data='data:image/' + image_ext + ';base64,' + image_bdata,
             cw_data=cw_data,
             cache_key=cache_key,
-            cw_id=cw_id)
+            cw_id=cw_id,
+            firebase_config=_get_firebase_config())
 
 @app.route('/go', methods=['POST'])
 def go():
@@ -70,7 +77,7 @@ def go():
     if not image_ext or not image_data:
         return redirect('/')
 
-    image_bdata = base64.b64encode(image_data)
+    image_bdata = base64.b64encode(image_data).decode("ascii")
 
     cw_data = extractor.extract(image_bdata)
 
@@ -87,7 +94,7 @@ def preview():
     output_image_ext = 'jpg'
     try:
         image_object = wi.Image(blob=image_data)
-        image_object.transform("1000x1000")
+        image_object.transform(resize="1000x1000")
         if 'rotate_cw' in request.form:
             image_object.rotate(90);
         if 'rotate_ccw' in request.form:
@@ -96,7 +103,7 @@ def preview():
     except:
         message = "Can't process image"
 
-    output_image_bdata = base64.b64encode(output_image_data)
+    output_image_bdata = base64.b64encode(output_image_data).decode("ascii")
 
     return render_template(
             "preview.html",
@@ -119,6 +126,14 @@ def delete():
             "delete.html",
             msg=msg)
 
+@app.route('/login', methods=['GET'])
+def login():
+    return render_template("login.html", firebase_config=_get_firebase_config())
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    return render_template("logout.html", firebase_config=_get_firebase_config())
+
 @app.route('/get_cw_data', methods=['GET'])
 def get_cw_data():
     args = request.args.to_dict()
@@ -132,7 +147,6 @@ def get_cw_data():
     data = user_saves.get(uid, cw_id)
     if not data:
         return ""
-    print(data)
     return data
 
 @app.route('/set_cw_data', methods=['POST'])
@@ -144,8 +158,6 @@ def set_cw_data():
     cw_data = request.data
     if not cw_data:
         return "No data specified", 400
-
-    print(cw_data)
 
     uid = _get_uid(request.headers['Authorization'].split(' ').pop())
     if not uid:
@@ -165,6 +177,6 @@ def _get_uid(id_token):
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()
-    m.update(bdata)
-    m.update(data)
+    m.update(bdata.encode('utf-8'))
+    m.update(data.encode('utf-8'))
     return m.hexdigest()

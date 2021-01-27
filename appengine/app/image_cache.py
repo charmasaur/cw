@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from app.app import db
 
 
-class ImageDataItem(ndb.Model):
+class ImageDataItem(db.Model):
     key = db.Column(db.Integer, primary_key=True)
     bdata = db.Column(db.String)
     ext = db.Column(db.String)
@@ -13,10 +13,10 @@ class ImageDataItem(ndb.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 def delete(key):
-    item = ImageDataItem.query.get(int(key))
-    if not item:
+    query = ImageDataItem.query.filter_by(key=int(key))
+    if not query.count():
         return False
-    item.delete()
+    query.delete()
     db.session.commit()
     return True
 
@@ -36,5 +36,5 @@ def get(key):
     return item.bdata, item.ext, item.cw_data, item.date
 
 def get_recents(count):
-    results = ImageDataItem.query.order_by(-ImageDataItem.date).limit(count)
+    results = ImageDataItem.query.order_by(ImageDataItem.date.desc()).limit(count)
     return [(result.date, str(result.key)) for result in results]

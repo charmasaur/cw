@@ -18,7 +18,8 @@
     }
   </script>
   <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
-  <script type="text/javascript" src="/js/init_firebase.js"></script>
+  <script type="text/javascript">var config = {{ firebase_config|safe }}</script>
+  <script type="text/javascript" src="/static/js/init_firebase.js"></script>
   <script>
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {

@@ -7,11 +7,7 @@ def extract(image_bdata):
     """
     Given a base64-encoded image, extracts and returns the crossword grid.
     """
-    image_bdata = request.get_data()
-
     success, cw_data = get_data_from_backend(image_bdata)
-    if success:
-        data_cache.put(image_bdata, cw_data)
 
     return cw_data
 
@@ -19,13 +15,16 @@ def _get_url_and_auth():
     return os.getenv("EXTRACTOR_URL", ""), os.getenv("EXTRACTOR_AUTH", "")
 
 def get_data_from_backend(bdata):
-    urlfetch.set_default_fetch_deadline(15)
     url, auth = _get_url_and_auth()
-    response = json.loads(
-        requests.post(
-            url=url,
-            json={"b64data": bdata},
-            headers={'Authorization': auth}).text)
+    try:
+        response = json.loads(
+            requests.post(
+                url=url,
+                json={"b64data": bdata},
+                headers={'Authorization': auth},
+                timeout=30).text)
+    except requests.exceptions.ReadTimeout:
+        return (False, "Request timed out")
 
     if not "result" in response:
         return (False, "Backend request failed: " + json.dumps(response))

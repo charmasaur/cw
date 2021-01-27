@@ -5,7 +5,8 @@
   <body>
     <div id="message">Logging out...</div>
   </body>
-  <script type="text/javascript" src="/js/init_firebase.js"></script>
+  <script type="text/javascript">var config = {{firebase_config|safe}}</script>
+  <script type="text/javascript" src="/static/js/init_firebase.js"></script>
   <script>
     firebase.auth().signOut().then(function() {
       document.getElementById("message").innerHTML = "Logged out, return to <a href=\"/\">home</a>";
