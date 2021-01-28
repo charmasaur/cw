@@ -1,9 +1,3 @@
 *.pyc
-lib*.pyc
-lib*.pyc
-lib*.pyc
-lib*.pyc
-lib*.pyc
-lib*.pyc
-lib*.pyc
-lib
+env_secret.dev
+env

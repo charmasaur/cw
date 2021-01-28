@@ -14,6 +14,12 @@ void showit(Mat& it) {
   waitKey(0);
 }
 
+// helper to threshold
+void my_threshold(Mat& input, Mat& output) {
+  //threshold(input, output, 128., 255., THRESH_BINARY | THRESH_OTSU);
+  adaptiveThreshold(input, output, 255., ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 101, 20);
+}
+
 // helper to convert an angle (in radians) to [-pi, pi)
 double principal_angle(double angle) {
   double tmp = fmod(angle, 2 * CV_PI); // (-2pi, 2pi)
@@ -63,7 +69,7 @@ double get_angle_fft(Mat& input) {
 
     // Threshold
     Mat thresholded;
-    threshold(magI, thresholded, 128., 255., THRESH_BINARY | THRESH_OTSU);
+    my_threshold(magI, thresholded);
 
     // Get rotation
     int midr = thresholded.rows / 2;
@@ -115,8 +121,8 @@ double get_angle_hough(Mat& input) {
     } while (lines.size() > 10);
     double angles = 0.;
     int angle_count = 0;
-    for (Vec2f line : lines) {
-        double pang = principal_angle(line[1]); // (-pi, pi)
+    for (Vec2f linefoo : lines) {
+        double pang = principal_angle(linefoo[1]); // (-pi, pi)
         if (pang < -CV_PI / 2) {
           pang += CV_PI;
         }
@@ -198,7 +204,7 @@ void hough_playing_for_grid_outline(Mat& input, Mat& output) {
 // crossword mask
 void get_cw_mask(Mat& input, Mat& outputMask) {
     Mat filled = input.clone();
-    threshold(filled, filled, 0., 255., THRESH_BINARY | THRESH_OTSU);
+    my_threshold(filled, filled);
     showit(filled);
     // Fill from all corners
     int in = 1;
@@ -245,13 +251,16 @@ void get_cw_orth_trunc(Mat& input, Mat& output) {
 }
 
 // get grid countG(assumes square)
-int get_grid_count(Mat& input) {
+int get_grid_row_count(Mat& input) {
     Mat tmp;
     Canny(input, tmp, 50, 200, 3);
 
     // get line spacings
-    int mx = max(input.rows, input.cols);
-    vector<float> vals(mx, 0);
+    int mx = input.rows;
+    int rmx = 0;
+    int rmn = (1 << 30);
+    cout << mx << endl;
+    vector<float> *vals = new vector<float>(mx, 0);
 
     vector<Vec2f> lines;
     int thresh = 0;
@@ -259,15 +268,39 @@ int get_grid_count(Mat& input) {
       thresh += 10;
       HoughLines(tmp, lines, 5, CV_PI/180, thresh, 0, 0);
     } while (lines.size() > 100);
-    for (Vec2f line : lines) {
-        int rho = abs(line[0]);
-        // only take things that are within the image and vaguely orthogonal
-        if (rho < mx && (abs(cos(line[1])) < 0.1 || abs(sin(line[1])) < 0.1)) {
-          ++vals[rho];
+    //Mat clr;
+    //cvtColor(input, clr, CV_GRAY2BGR);
+    for (Vec2f foolines : lines) {
+        int rho2 = abs(foolines[0]);
+        // only take things that are within the image and vaguely horizontal
+        if (rho2 < mx && abs(cos(foolines[1])) < 0.1) {
+          float rho = foolines[0], theta = foolines[1];
+          Point pt1, pt2;
+          double a = cos(theta), b = sin(theta);
+          double x0 = a*rho, y0 = b*rho;
+          pt1.x = cvRound(x0 + 1000*(-b));
+          pt1.y = cvRound(y0 + 1000*(a));
+          pt2.x = cvRound(x0 - 1000*(-b));
+          pt2.y = cvRound(y0 - 1000*(a));
+          //line(clr, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
+
+          // (x0, y0) + c(-b, a) = (cols/2, _)
+          // x0 - cb = cols/2, c = (x0 - cols/2) / b, _ = y0 + ca
+          float c = (x0 - input.cols/2) / b;
+          int foo = int(y0 + c * a);
+          if (foo >= mx) {
+            continue;
+          }
+          ++(*vals)[foo];
+          rmx = max(rmx, foo);
+          rmn = min(rmn, foo);
+          //circle(clr, Point(x0 - b * c, y0 + c * a), 2, Scalar(0, 255, 0));
         }
     }
+    //showit(clr);
 
-    Mat planes[] = {Mat_<float>(vals), Mat::zeros(vals.size(), 1, CV_32F)};
+    vector<float> rvals(vals->begin() + rmn, vals->begin() + rmx);
+    Mat planes[] = {Mat_<float>(rvals), Mat::zeros(rvals.size(), 1, CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);
     dft(complexI, complexI);
@@ -284,6 +317,7 @@ int get_grid_count(Mat& input) {
     // take the first peak after fst that's over the 90th percentile
     int fst = 9;
     float last = magI.at<float>(fst, 0);
+    int res = 0;
     for (int i = fst + 1; i < magI.rows; ++i) {
       float ti = magI.at<float>(i, 0);
       if (ti < last && last > accept_thresh) {
@@ -296,20 +330,22 @@ int get_grid_count(Mat& input) {
 }
 
 bool is_black_square(Mat& input, int grid_count, int row, int col) {
-    double sp = double(input.rows) / double(grid_count);
+    double spr = double(input.rows) / double(grid_count);
+    double spc = double(input.cols) / double(grid_count);
     // get actual row/col pixel
-    int r = int(double(row) * sp + sp / 2);
-    int c = int(double(col) * sp + sp / 2);
+    int r = int(double(row) * spr + spr / 2);
+    int c = int(double(col) * spc + spc / 2);
 
-    Mat tmp;
-    threshold(input, tmp, 128., 255., THRESH_BINARY | THRESH_OTSU);
+    Mat& tmp = input;
 
-    unsigned int dim = int(sp/4);
-    int DIM = int(dim);
-    int left = max(0, c - DIM);
-    int top = max(0, r - DIM);
-    int width = min(tmp.cols - left, 2 * DIM);
-    int height = min(tmp.rows - top, 2 * DIM);
+    unsigned int dimr = int(spr/4);
+    unsigned int dimc = int(spc/4);
+    int DIMr = int(dimr);
+    int DIMc = int(dimc);
+    int left = max(0, c - DIMc);
+    int top = max(0, r - DIMr);
+    int width = min(tmp.cols - left, 2 * DIMc);
+    int height = min(tmp.rows - top, 2 * DIMr);
     Mat masked = tmp(Rect(left, top, width, height));
     vector<Point> whites;
     if (countNonZero(masked) > 0) {
@@ -334,26 +370,39 @@ int main(int argc, char **argv) {
 
     showit(input);
 
-    Mat cw;
     namedWindow("cwfloat", WINDOW_AUTOSIZE);
-    get_cw_orth_trunc(input, cw);
-    showit(cw);
-    imwrite(string("cw_") + string(argv[1]), cw);
+    get_cw_orth_trunc(input, input);
+    showit(input);
+    imwrite(string("cw_") + string(argv[1]), input);
 
-    int grid_count = get_grid_count(cw);
-    double sp = double(cw.rows) / double(grid_count);
-    double rowy=sp/2,cowy=sp/2;
+    Mat cw_thresh;
+    my_threshold(input, cw_thresh);
+
+    int grid_row_count = get_grid_row_count(cw_thresh);
+    Mat trans;
+    transpose(cw_thresh, trans);
+    int grid_col_count = get_grid_row_count(trans);
+    if (grid_row_count != grid_col_count) {
+      cerr << "Row and column counts differ (row " << grid_row_count << ", col " << grid_col_count
+          << ")" << endl;
+      return -1;
+    }
+    int grid_count = grid_row_count;
+
+    double spr = double(input.rows) / double(grid_col_count);
+    double spc = double(input.cols) / double(grid_count);
+    double rowy=spr/2,cowy=spc/2;
     Mat ccw;
-    cvtColor(cw, ccw, CV_GRAY2BGR);
-    while(rowy < cw.rows) {
+    cvtColor(cw_thresh, ccw, CV_GRAY2BGR);
+    while(rowy < input.rows) {
       //cout << rowy << " " << cowy << endl;
-      if (cowy > cw.cols) {
-        rowy += sp;
-        cowy = sp/2;
+      if (cowy > input.cols) {
+        rowy += spr;
+        cowy = spc/2;
         continue;
       }
       circle(ccw, Point(cowy, rowy), 4, Scalar(0, 0, 255));
-      cowy += sp;
+      cowy += spc;
     }
     showit(ccw);
 
@@ -363,7 +412,7 @@ int main(int argc, char **argv) {
     cout << grid_count << endl;
     for (int r = 0; r < grid_count; ++r) {
       for (int c = 0; c < grid_count; ++c) {
-        black[r][c] = is_black_square(cw, grid_count, r, c);
+        black[r][c] = is_black_square(cw_thresh, grid_count, r, c);
         cout << (black[r][c] ? '#' : ' ');
         if (!black[r][c]) {
           rectangle(ne, Rect(c * wid, r * wid, wid - 1, wid - 1), Scalar(255), CV_FILLED);

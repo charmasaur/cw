@@ -550,6 +550,13 @@ function onClearSavedDataSubmit() {
   return false;
 }
 
+function onDeleteSubmit() {
+  if (!confirm("Are you sure you want to delete this crossword for everyone?")) {
+    return false;
+  }
+  return true;
+}
+
 window.onload = function() {
   init_image(image_data);
   init_cw(cw_data);

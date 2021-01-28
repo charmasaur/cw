@@ -1,19 +1,23 @@
+import os
+
 from flask import Flask, redirect, request, render_template, url_for
-from google.appengine.api import images, urlfetch
 import google.oauth2.id_token
 import google.auth.transport.requests
 import base64
 import datetime
 import hashlib
 import json
-import requests_toolbelt.adapters.appengine
+import wand.image as wi
 
-import image_cache
-import user_saves
+import app.image_cache as image_cache
+import app.user_saves as user_saves
+import app.extractor as extractor
 
-requests_toolbelt.adapters.appengine.monkeypatch()
 
-app = Flask(__name__)
+from app.app import app
+
+def _get_firebase_config():
+    return os.getenv("FIREBASE_CONFIG", "")
 
 def get_ext_and_data(request):
     ext = None
@@ -39,7 +43,8 @@ def home():
 
     return render_template(
             "home.html",
-            recents=recents)
+            recents=recents,
+            firebase_config=_get_firebase_config())
 
 @app.route('/cw', methods=['GET'])
 def cw():
@@ -63,7 +68,8 @@ def cw():
             image_data='data:image/' + image_ext + ';base64,' + image_bdata,
             cw_data=cw_data,
             cache_key=cache_key,
-            cw_id=cw_id)
+            cw_id=cw_id,
+            firebase_config=_get_firebase_config())
 
 @app.route('/go', methods=['POST'])
 def go():
@@ -71,13 +77,9 @@ def go():
     if not image_ext or not image_data:
         return redirect('/')
 
-    image_bdata = base64.b64encode(image_data)
+    image_bdata = base64.b64encode(image_data).decode("ascii")
 
-    urlfetch.set_default_fetch_deadline(20)
-    cw_data = urlfetch.fetch(
-            url="http://extractor.cw-mungo.appspot.com/extract",
-            payload=image_bdata,
-            method=urlfetch.POST).content
+    cw_data = extractor.extract(image_bdata)
 
     msg = image_cache.put(image_bdata, image_ext, cw_data)
     return redirect('/cw?cw_id=' + msg)
@@ -87,35 +89,26 @@ def preview():
     image_ext, image_data = get_ext_and_data(request)
     if not image_ext or not image_data:
         return redirect('/')
-    if not (image_ext == "jpg" or image_ext == "jpeg"):
-        urlfetch.set_default_fetch_deadline(30)
-        result = json.loads(urlfetch.fetch(
-                url="http://converter.cw-mungo.appspot.com/convert",
-                payload=base64.b64encode(image_data),
-                method=urlfetch.POST).content)
-        if not result or not "b64data" in result or not "ext" in result:
-            return redirect('/')
-        image_ext = result["ext"]
-        image_data = base64.b64decode(result["b64data"])
 
     message = ""
+    output_image_ext = 'jpg'
     try:
-        image_object = images.Image(image_data)
-        image_object.resize(width=1000, height=1000)
+        image_object = wi.Image(blob=image_data)
+        image_object.transform(resize="1000x1000")
         if 'rotate_cw' in request.form:
             image_object.rotate(90);
         if 'rotate_ccw' in request.form:
             image_object.rotate(-90);
-        image_data = image_object.execute_transforms(output_encoding=images.JPEG)
+        output_image_data = image_object.convert(output_image_ext).make_blob()
     except:
         message = "Can't process image"
 
-    image_bdata = base64.b64encode(image_data)
+    output_image_bdata = base64.b64encode(output_image_data).decode("ascii")
 
     return render_template(
             "preview.html",
-            image_bdata=image_bdata,
-            image_ext=image_ext,
+            image_bdata=output_image_bdata,
+            image_ext=output_image_ext,
             message=message)
 
 @app.route('/delete', methods=['GET'])
@@ -133,12 +126,13 @@ def delete():
             "delete.html",
             msg=msg)
 
-@app.route('/get_uid', methods=['GET'])
-def get_uid():
-    uid = _get_uid(request.headers['Authorization'].split(' ').pop())
-    if not uid:
-        return "Unauthorized", 401
-    return uid
+@app.route('/login', methods=['GET'])
+def login():
+    return render_template("login.html", firebase_config=_get_firebase_config())
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    return render_template("logout.html", firebase_config=_get_firebase_config())
 
 @app.route('/get_cw_data', methods=['GET'])
 def get_cw_data():
@@ -153,7 +147,6 @@ def get_cw_data():
     data = user_saves.get(uid, cw_id)
     if not data:
         return ""
-    print(data)
     return data
 
 @app.route('/set_cw_data', methods=['POST'])
@@ -162,11 +155,9 @@ def set_cw_data():
     if not 'cw_id' in args:
         return "No ID specified", 400
     cw_id = args['cw_id']
-    cw_data = request.data
+    cw_data = request.data.decode("ascii")
     if not cw_data:
         return "No data specified", 400
-
-    print(cw_data)
 
     uid = _get_uid(request.headers['Authorization'].split(' ').pop())
     if not uid:
@@ -186,6 +177,6 @@ def _get_uid(id_token):
 
 def get_cache_key(bdata, data):
     m = hashlib.md5()
-    m.update(bdata)
-    m.update(data)
+    m.update(bdata.encode('utf-8'))
+    m.update(data.encode('utf-8'))
     return m.hexdigest()

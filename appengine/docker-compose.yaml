@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+      - 5000:5000
+    env_file:
+      - ./env.dev
+      - ./env_secret.dev
+    # Use dev server for development instead of gunicorn, since it seems to
+    # see code changes more promptly.
+    command: ["python", "manage.py", "run", "--host", "0.0.0.0"]
+  db:
+    image: postgres:12-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=hello_flask
+      - POSTGRES_PASSWORD=hello_flask
+      - POSTGRES_DB=hello_flask_dev
+
+volumes:
+  postgres_data:
