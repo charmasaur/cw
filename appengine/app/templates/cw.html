@@ -60,7 +60,7 @@
         <input type="submit" value="Home"/>
       </form>
       <br><br><br><br>
-      <form action=delete method=get>
+      <form action=delete method=get onsubmit="return onDeleteSubmit();">
         <input type="hidden" name="cw_id" value="{{cw_id}}"/>
         <input type="submit" value="Delete"/>
       </form>
