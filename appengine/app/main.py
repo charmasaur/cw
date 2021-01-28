@@ -155,7 +155,7 @@ def set_cw_data():
     if not 'cw_id' in args:
         return "No ID specified", 400
     cw_id = args['cw_id']
-    cw_data = request.data
+    cw_data = request.data.decode("ascii")
     if not cw_data:
         return "No data specified", 400
 
