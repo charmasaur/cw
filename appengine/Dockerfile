@@ -15,6 +15,9 @@ RUN pip install -r requirements.txt
 
 COPY . /usr/src/app/
 
+# Allow conversion of PDFs
+RUN sed -i 's/\(<policy domain="coder" rights="none" pattern="PDF" \/>\)/<!-- \1 -->/' /etc/ImageMagick-6/policy.xml
+
 RUN useradd -m myuser
 USER myuser
 
