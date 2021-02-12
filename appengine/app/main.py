@@ -92,6 +92,7 @@ def preview():
 
     message = ""
     output_image_ext = 'jpg'
+    output_image_bdata = ""
     try:
         image_object = wi.Image(blob=image_data)
         image_object.transform(resize="1000x1000")
@@ -100,10 +101,10 @@ def preview():
         if 'rotate_ccw' in request.form:
             image_object.rotate(-90);
         output_image_data = image_object.convert(output_image_ext).make_blob()
-    except:
-        message = "Can't process image"
-
-    output_image_bdata = base64.b64encode(output_image_data).decode("ascii")
+    except Exception as e:
+        message = f"Can't process image: {e}"
+    else:
+        output_image_bdata = base64.b64encode(output_image_data).decode("ascii")
 
     return render_template(
             "preview.html",
