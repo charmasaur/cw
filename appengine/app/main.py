@@ -77,11 +77,11 @@ def go():
     if not image_ext or not image_data:
         return redirect('/')
 
-    image_bdata = base64.b64encode(image_data).decode("ascii")
+    image_bdata = base64.b64encode(image_data)
 
     cw_data = extractor.extract(image_bdata)
 
-    msg = image_cache.put(image_bdata, image_ext, cw_data)
+    msg = image_cache.put(image_bdata.decode("ascii"), image_ext, cw_data)
     return redirect('/cw?cw_id=' + msg)
 
 @app.route('/preview', methods=['POST'])

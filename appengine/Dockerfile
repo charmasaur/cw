@@ -1,13 +1,13 @@
 # From https://testdriven.io/blog/dockerizing-flask-with-postgres-gunicorn-and-nginx/
 
-FROM python:3.8.1-slim-buster
+FROM jjanzic/docker-python3-opencv:opencv-4.0.0
 
 WORKDIR /usr/src/app
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update -y && apt-get install -y libmagickwand-dev
+RUN apt-get update -y && apt-get install -y libmagickwand-dev ghostscript
 
 RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt

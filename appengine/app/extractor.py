@@ -1,7 +1,4 @@
-import json
-import os
-
-import requests
+import cwmungo.crossword_extractor as crossword_extractor
 
 def extract(image_bdata):
     """
@@ -11,25 +8,8 @@ def extract(image_bdata):
 
     return cw_data
 
-def _get_url_and_auth():
-    return os.getenv("EXTRACTOR_URL", ""), os.getenv("EXTRACTOR_AUTH", "")
-
 def get_data_from_backend(bdata):
-    url, auth = _get_url_and_auth()
-    try:
-        response = json.loads(
-            requests.post(
-                url=url,
-                json={"b64data": bdata},
-                headers={'Authorization': auth},
-                timeout=30).text)
-    except requests.exceptions.ReadTimeout:
-        return (False, "Request timed out")
-
-    if not "result" in response:
-        return (False, "Backend request failed: " + json.dumps(response))
-
-    data = response["result"]
+    data = crossword_extractor.apply({"b64data":bdata})
     data = data.replace("|","\n")
     data = data + "\n"
     data = data + get_clues(data)
