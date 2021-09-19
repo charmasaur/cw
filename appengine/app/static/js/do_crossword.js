@@ -7,6 +7,7 @@ var is_cell_blocked;
 var entries;
 var sync_state;
 var is_conflict;
+var highlighted_entry;
 
 function Entry(index, is_across, start_r, start_c, len) {
   this.index = index;
@@ -33,12 +34,52 @@ function is_part_of_clue(r, c, rd, cd) {
       || (cd == 1 && c + cd < width && cell_letter[r][c+cd].nodeValue != "");
 }
 
+function is_highlighted(r, c) {
+  const entry = highlighted_entry;
+  if (entry == null) {
+    return false;
+  }
+  if (entry.is_across) {
+    return r == entry.start_r && entry.start_c <= c && c < entry.start_c + entry.len;
+  }
+  return c == entry.start_c && entry.start_r <= r && r < entry.start_r + entry.len;
+}
+
+function set_highlight(entry) {
+  const old_highlight = highlighted_entry;
+  highlighted_entry = null;
+  if (old_highlight != null) {
+    update_entry_colors(old_highlight);
+  }
+
+  highlighted_entry = entry;
+  if (entry != null) {
+    update_entry_colors(entry);
+  }
+}
+
+function update_entry_colors(entry) {
+  if (entry.is_across) {
+    rdiff = 0;
+    cdiff = 1;
+  } else {
+    rdiff = 1;
+    cdiff = 0;
+  }
+
+  for (var i = 0; i < entry.len; i++) {
+    r = entry.start_r + i * rdiff;
+    c = entry.start_c + i * cdiff;
+    update_color(r, c);
+  }
+}
+
 function set_conflict(r, c) {
   if (is_conflict[r][c]) {
     return;
   }
   is_conflict[r][c] = true;
-  cell[r][c].bgColor = 'red';
+  update_color(r, c);
 }
 
 function clear_conflict(r, c) {
@@ -46,7 +87,17 @@ function clear_conflict(r, c) {
     return;
   }
   is_conflict[r][c] = false;
-  cell[r][c].bgColor = 'white';
+  update_color(r, c);
+}
+
+function update_color(r, c) {
+  var color = 'white';
+  if (is_conflict[r][c]) {
+    color = 'red';
+  } else if (is_highlighted(r, c)) {
+    color = 'aquamarine';
+  }
+  cell[r][c].bgColor = color;
 }
 
 function onSubmit() {
@@ -188,6 +239,7 @@ function onCellClicked(r, c) {
   }
 
   document.getElementsByName("direction")[0].selectedIndex = set_across ? 0 : 1;
+  set_highlight(find_entry(index, set_across));
 
   var txt = document.getElementsByName("text")[0];
   // Only clear the text if this wasn't a swap (if it was a swap then the user might have
@@ -274,6 +326,29 @@ function init_cw(file) {
   div.appendChild(table);
 
   init_labels();
+}
+
+function onControlsChanged() {
+  const num = document.forms["new"]["number"].value;
+  const across = document.forms["new"]["direction"].value == 'Across';
+
+  // TODO: Bit weird to be controlling this from both here and onCellClicked...
+  set_highlight(find_entry(num, across));
+}
+
+function init_controls() {
+  const num = document.forms["new"]["number"];
+  const direction = document.forms["new"]["direction"];
+
+  num.addEventListener('input', onControlsChanged);
+  direction.addEventListener('input', onControlsChanged);
+
+  if (entries.length == 0) {
+    return;
+  }
+  num.value = entries[0].index;
+  direction.value = entries[0].is_across ? 'Across' : 'Down';
+  onControlsChanged();
 }
 
 // ------------------- storage/sync related stuff --------------------
@@ -561,4 +636,5 @@ window.onload = function() {
   init_image(image_data);
   init_cw(cw_data);
   init_user_input();
+  init_controls();
 }
