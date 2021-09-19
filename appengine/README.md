@@ -3,10 +3,9 @@
 Flask server for the frontend (accepts crossword images, sends them to the backend for
 extraction, then serves the crossword interface).
 
-The Dockerfile encapsulates the main part of the server. It assumes access to environent variables
-`EXTRACTOR_URL` (the URL for extracting crossword grids from images), `EXTRACTOR_AUTH`
-(authorization header for that URL), `FIREBASE_CONFIG` (a JSON string with the config dict to pass
-to `firebase.initializeApp`, more on this below), and `PORT` (port on which the server will run).
+The Dockerfile encapsulates the main part of the server. It assumes access to environent variable
+`FIREBASE_CONFIG` (a JSON string with the config dict to pass to `firebase.initializeApp`, more on
+this below), and `PORT` (port on which the server will run).
 
 The Firebase config should look something like:
 ```
