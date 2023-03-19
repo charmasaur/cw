@@ -1,7 +1,7 @@
 # Frontend
 
-Flask server for the frontend (accepts crossword images, sends them to the backend for
-extraction, then serves the crossword interface).
+Flask server for the frontend (accepts crossword images, sends them to the backend for extraction,
+then serves the crossword interface).
 
 The Dockerfile encapsulates the main part of the server. It assumes access to environent variable
 `FIREBASE_CONFIG` (a JSON string with the config dict to pass to `firebase.initializeApp`, more on
