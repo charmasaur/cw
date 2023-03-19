@@ -24,5 +24,5 @@ console, make sure that the API key is restricted to HTTP referrers "localhost",
 "<project>.firebaseapp.com", and "<project>.herokuapp.com" (or wherever it's going to be hosted),
 and that the only API in the API restrictions is the "Identity Toolkit API". In the Firebase
 console, make sure "<project>.firebaseapp.com", "<project>.herokuapp.com" (or wherever it's going to
-be hosted), and "localhost" are authorised domains in the "Authentication -> Sign-in method"
-section.
+be hosted), and "localhost" are authorised domains in the "Authentication -> Settings -> Authorized
+domains" section.
